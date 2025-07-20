@@ -1,0 +1,571 @@
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+
+/* Define a CSS variable for the custom font */
+:root {
+     --my-font: 'Libre Baskerville', cursive;
+}
+
+/* Base styling for the body */
+body {
+    font-family: var(--my-font);
+    background-color: #001100; /* Dark blue-gray background */
+    color: #e2e8f0; /* Light text color */
+    margin: 0;
+    display: flex;
+    flex-direction: column; /* Allow stacking header and content */
+    justify-content: flex-start; /* Align content to the top */
+    align-items: center;
+    min-height: 100vh; /* Ensure body takes full viewport height */
+    overflow: hidden; /* Prevent scrollbars */
+    cursor: none; /* Hide the default mouse cursor */
+    position: relative; /* Needed for positioning all canvases */
+}
+
+/* Background Lattice Canvas */
+#background-lattice-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* Lowest z-index to be truly in the background */
+    pointer-events: none; /* Allows clicks to pass through to elements below */
+}
+
+/* Header Styling */
+.main-header {
+    margin-top: 5vh; /* Space from the top */
+    margin-bottom: 1rem; /* Reduced space before new text */
+    text-align: center;
+    color: white;
+    font-size: 4rem; /* Large font size for blockiness */
+    letter-spacing: 2px; /* Add some spacing between letters */
+    text-transform: lowercase; /* Ensure lowercase styling */
+    /* Pixelation effect using multiple text shadows */
+    text-shadow:
+        1px 1px 0px white,
+        2px 2px 0px white,
+        3px 3px 0px white,
+        4px 4px 0px #00FFFF,
+        5px 5px 0px #00FFFF,
+        0 0 15px rgba(0, 255, 255, 0.7), /* Outer glow */
+        0 0 30px rgba(0, 255, 255, 0.5);
+    animation: header-flicker 2s infinite alternate; /* Subtle flicker */
+    position: relative; /* Ensure it's above other elements */
+    z-index: 11;
+    font-family: 'Times New Roman', serif; /* Keep original font for the title */
+}
+
+@keyframes header-flicker {
+    0%, 100% { opacity: 1; text-shadow: 1px 1px 0px #00FFFF, 2px 2px 0px #00FFFF, 3px 3px 0px #00FFFF, 4px 4px 0px #00FFFF, 5px 5px 0px #00FFFF, 0 0 15px rgba(0, 255, 255, 0.7), 0 0 30px rgba(0, 255, 255, 0.5); }
+    50% { opacity: 0.9; text-shadow: 1px 1px 0px #00FFFF, 2px 2px 0px #00FFFF, 3px 3px 0px #00FFFF, 0 0 10px rgba(0, 255, 255, 0.5); }
+}
+
+
+/* Custom Cursor Styling */
+#custom-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    /* Border sizes will be set by JS */
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 25px solid #00FFFF; /* Default Bright Cyan for the main face, overridden by JS */
+    filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.9)); /* Stronger glow, overridden by JS */
+    pointer-events: none; /* Allows clicks to pass through */
+    z-index: 9999; /* Ensures the cursor is on top */
+    transform: translate(-50%, -50%); /* Centers the base point of the pyramid */
+    transition: transform 0.05s ease-out; /* Smooth movement */
+
+    /* Blinking animation */
+    animation: cursor-blink 1.0s infinite alternate; /* Faster blink */
+}
+
+@keyframes cursor-blink {
+    0%, 20%, 80%, 100% { opacity: 1; }
+    50% { opacity: 0.4; } /* More transparent when blinking */
+}
+
+/* Canvas for Ripples */
+#ripple-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Allows interaction with elements below */
+    z-index: 5; /* Below the content, above the body background */
+}
+
+/* Canvas for Left CD */
+#cd-canvas-left {
+    position: absolute; /* Changed to absolute for independent movement */
+    /* Width and height will be set by JS */
+    pointer-events: none; /* Allows interaction with elements below */
+    border-radius: 50%; /* Make it circular */
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); /* Subtle glow */
+    z-index: 11; /* Ensure it's above other elements */
+}
+
+/* Canvas for Right CD */
+#cd-canvas-right {
+    position: absolute; /* Changed to absolute for independent movement */
+    /* Width and height will be set by JS */
+    pointer-events: none; /* Allows interaction with elements below */
+    border-radius: 50%; /* Make it circular */
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); /* Subtle glow */
+    z-index: 11; /* Ensure it's above other elements */
+}
+
+/* Adjust body to align content to the top */
+body {
+    justify-content: flex-start; /* Align content vertically to the top */
+}
+
+/* Stop Button Styling (Octagon) */
+#stop-discs-button {
+    position: fixed;
+    /* top, right, width, height, padding, and font-size will be set by JS */
+    background-color: #346beb; /* freeze color */
+    color: white;
+    font-family: 'Press Start 2P', cursive; /* Pixelated font */
+    border: none; /* Removed default border */
+    border-radius: 5px; /* Slight roundness */
+    cursor: pointer;
+    z-index: 1000; /* Ensure it's on top */
+    /* Octagon shape using clip-path */
+    clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+    transition: transform 0.1s ease, opacity 0.3s ease; /* Keep transform/opacity transition */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    box-shadow:
+        0 0 0 2px white, /* White outline */
+        0 0 0 3px black; /* Thin black outline outside white */
+    text-transform: uppercase; /* Ensure text is uppercase */
+    display: flex; /* Use flex to center text vertically */
+    flex-direction: column; /* Stack text lines */
+    align-items: center;
+    justify-content: center;
+    line-height: 1.2; /* Adjust line height for multi-line text */
+    text-align: center; /* Center text horizontally */
+    white-space: normal; /* Allow text to wrap naturally within the button */
+    animation: flash-button 1s infinite steps(1); /* Flashing animation */
+}
+
+#stop-discs-button:hover:not(:disabled) {
+    background-color: #346beb; /* freeze color */
+    transform: scale(1.05);
+}
+
+#stop-discs-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #888888; /* Grey out when disabled */
+    box-shadow:
+        0 0 0 2px #cccccc, /* Greyed out white outline */
+        0 0 0 3px #555555; /* Greyed out black outline */
+    animation: none; /* Stop flashing when disabled */
+}
+
+@keyframes flash-button {
+    0% { background-color: #346beb; } /* Freeze Blue */
+    50% { background-color: #000000; } /* Black */
+    100% { background-color: #346beb; } /* Freeze Blue (loops back) */
+}
+
+/* Audio Toggle Button Styling */
+#audioToggleBtn {
+    position: fixed;
+    /* top, right, width, height, font-size and padding will be set by JS */
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 1000;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    box-shadow: 0 0 0 2px white, 0 0 0 3px black;
+    text-transform: uppercase;
+    transition: background-color 0.1s ease, transform 0.1s ease;
+    display: flex; /* Enable flexbox for vertical alignment */
+    flex-direction: column; /* Stack text vertically */
+    align-items: center;
+    justify-content: center;
+    line-height: 1.1; /* Adjust line height for stacked text */
+    text-align: center; /* Center text horizontally */
+}
+/* Initial state: Blue */
+#audioToggleBtn.audio-initial {
+    background-color: #346beb; /* Blue */
+}
+/* Audio ON state: Green */
+#audioToggleBtn.audio-on {
+    background-color: #34d399; /* Green */
+}
+/* Audio OFF (muted) state: Grey */
+#audioToggleBtn.audio-off {
+    background-color: #888888; /* Grey */
+}
+
+#audioToggleBtn:hover {
+    transform: scale(1.05);
+}
+/* Hover effects for specific states */
+#audioToggleBtn.audio-initial:hover {
+    background-color: #2a5bb8; /* Darker blue on hover */
+}
+#audioToggleBtn.audio-on:hover {
+    background-color: #28a776; /* Darker green on hover */
+}
+#audioToggleBtn.audio-off:hover {
+    background-color: #777777; /* Darker grey on hover */
+}
+
+
+/* Container for Intro Text and Photo */
+#content-flex-container {
+    display: flex;
+    flex-direction: column; /* Stack vertically */
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem; /* Reduced gap between photo and text */
+    margin-bottom: 3rem; /* Space below this section */
+    max-width: 1200px; /* Max width for this container */
+    padding: 0 20px; /* Add some horizontal padding */
+    position: relative;
+    z-index: 10;
+}
+
+/* New Text below title */
+.intro-text {
+    font-family: var(--my-font);
+    font-size: 1.5rem; /* Smaller font size for paragraph */
+    color: #e2e8f0;
+    text-align: center; /* Changed to center */
+    max-width: 700px; /* Increased width for the text */
+    flex-shrink: 1; /* Allow text to shrink if needed */
+
+
+    animation: text-flicker-subtle 3s infinite alternate; /* Slower flicker */
+
+    text-shadow:
+        1px 1px 0px rgba(255, 255, 255, 0.1), /* Very subtle white shadow */
+        2px 2px 0px rgba(255, 255, 255, 0.08),
+        3px 3px 0px rgba(255, 255, 255, 0.06),
+        4px 4px 0px rgba(0, 255, 255, 0.04), /* Very subtle cyan shadow */
+        5px 5px 0px rgba(0, 255, 255, 0.02),
+        0 0 5px rgba(0, 255, 255, 0.1), /* Subtle outer glow */
+        0 0 10px rgba(0, 255, 255, 0.05);
+}
+
+@keyframes text-flicker-subtle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.9; } /* Less transparency when flickering */
+}
+
+/* User Photo Placeholder */
+#user-photo-placeholder {
+    /* Width and height will be set by JS */
+    background-color: #333; /* Dark grey placeholder */
+    border: 2px dashed #00FFFF; /* Cyan dashed border */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+    border-radius: 8px;
+    overflow: hidden; /* Ensure text doesn't overflow */
+    flex-shrink: 0; /* Prevent photo from shrinking too much */
+}
+
+#user-photo-placeholder .album-art {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Changed to contain to prevent cropping */
+}
+
+#user-photo-placeholder .placeholder-text {
+    font-family: var(--my-font);
+    color: #00FFFF;
+    font-size: 1rem; /* Adjusted font size for smaller box */
+    text-align: center;
+    padding: 5px;
+    line-height: 1.2;
+}
+
+
+/* New Link Boxes Container */
+.link-boxes-container {
+    position: relative; /* Positioning context for absolute children */
+    width: 80%; /* Responsive width */
+    /* max-width and height will be set by JS */
+    pointer-events: none; /* Allow clicks to pass through to individual boxes */
+    z-index: 10; /* Ensure it's above canvases */
+    margin-bottom: 50px; /* Space at the bottom */
+}
+
+.link-box {
+    background-color: rgba(0, 0, 0, 0.3); /* Semi-transparent background */
+    border-radius: 8px; /* Rounded corners */
+    border: 2px solid white; /* Thick white outline */
+    /* Padding will be set by JS for responsiveness */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center content horizontally */
+    justify-content: center; /* Center content vertically */
+    text-align: center; /* Center text */
+    cursor: pointer;
+    box-shadow: none; /* No inner glow */
+    pointer-events: auto; /* Re-enable pointer events for interaction */
+
+    position: absolute; /* Now absolutely positioned within its container */
+    overflow: hidden; /* Hide overflowing content */
+}
+
+/* Specific dimensions for each box (all divided by 2 again) */
+#box-latest {
+    /* Width, height, and padding will be set by JS */
+    justify-content: space-between; /* Distribute space between title, art, links */
+    gap: 6px; /* Gap between flex items */
+}
+
+#box-latest .album-art {
+    /* Width and height will be set by JS */
+    background-color: #555; /* Darker grey for album art */
+    border-radius: 4px; /* Slightly rounded corners for image */
+    object-fit: contain; /* Ensure image is never cut off */
+}
+
+#box-latest .links-group {
+    display: flex;
+    flex-direction: column; /* Stack links vertically */
+    gap: 5px; /* Space between links */
+    /* font-size will be set by JS */
+}
+
+#box-links {
+    /* Width, height, and padding will be set by JS */
+    /* Justify-content and align-items are set on .link-box */
+}
+
+#box-links p {
+    margin-bottom: 8px; /* Reduced space between lines of text */
+    text-align: center; /* Center text */
+    width: 100%; /* Take full width */
+}
+
+#box-contact {
+    /* Width, height, and padding will be set by JS */
+    text-decoration: none; /* Remove underline by default for the box itself */
+    /* Justify-content and align-items are set on .link-box */
+}
+
+#box-song-request {
+    /* Width and height will be set by JS */
+    text-decoration: none; /* Remove underline by default for the box itself */
+    border-color: #00FFFF; /* Initial cyan border */
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); /* Initial cyan glow */
+    animation: glowing-border 2s infinite alternate; /* Glowing animation */
+    position: fixed; /* Fixed position for this specific box */
+    pointer-events: auto; /* Re-enable pointer events */
+    z-index: 1000; /* Ensure it's on top */
+}
+
+/* Special glowing border animation for Box 4 */
+@keyframes glowing-border {
+    0% {
+        border-color: #008888; /* Darker Cyan */
+        box-shadow: 0 0 10px rgba(0, 136, 136, 0.5), 0 0 20px rgba(0, 136, 136, 0.3);
+    }
+    50% {
+        border-color: #000088; /* Darker Blue */
+        box-shadow: 0 0 15px rgba(0, 0, 136, 0.7), 0 0 30px rgba(0, 0, 136, 0.5);
+    }
+    100% {
+        border-color: #008888;
+        box-shadow: 0 0 10px rgba(0, 136, 136, 0.5), 0 0 20px rgba(0, 136, 136, 0.3);
+    }
+}
+
+
+/* Remove the ::before pseudo-element for outline as it's now direct on .link-box */
+.link-box::before {
+    content: none; /* Explicitly remove content */
+}
+
+/* Remove all hover effects for link-box, except for the special box which has its own animation */
+.link-box:hover:not(.special-box),
+.link-box:nth-child(1):hover:not(.special-box),
+.link-box:nth-child(2):hover:not(.special-box),
+.link-box:nth-child(3):hover:not(.special-box),
+.link-box:nth-child(4):hover:not(.special-box),
+.link-box:hover::before:not(.special-box), /* Ensure pseudo-element hover is also removed */
+.link-box:nth-child(1):hover::before:not(.special-box),
+.link-box:nth-child(2):hover::before:not(.special-box),
+.link-box:nth-child(3):hover::before:not(.special-box),
+.link-box:nth-child(4):hover::before:not(.special-box) {
+    transform: none; /* Ensure no scaling */
+    box-shadow: none; /* Ensure no glow */
+    /* No clip-path needed for hover either */
+}
+
+
+.link-title {
+    font-family: var(--my-font); /* Changed to use CSS variable */
+    /* font-size will be set by JS */
+    color: #FFFFFF; /* Changed to white for better contrast on grey */
+    margin-bottom: 6px; /* Reduced margin */
+    text-shadow: 1px 1px 0px #00FFFF; /* Kept cyan shadow for a pop */
+}
+
+/* Specific rule for the audio file name within the audio player box */
+#audio-player-box .link-title {
+    margin-bottom: 0; /* Remove extra space below the audio file name */
+}
+
+/* Styling for text links within boxes */
+.text-link {
+    color: #00FFFF; /* Cyan for links */
+    text-decoration: none; /* No underline by default */
+    font-family: var(--my-font); /* Changed to use CSS variable */
+    /* font-size will be set by JS */
+    transition: text-decoration 0.1s ease;
+}
+
+.text-link:hover {
+    text-decoration: underline; /* Underline on hover */
+}
+
+/* Add hover underline for Contact Me and Let Me Make You A Song */
+#box-contact:hover .link-title,
+#box-song-request:hover .link-title {
+    text-decoration: underline;
+}
+
+/* Floating Arrow Styling (CSS Triangle) */
+.floating-arrow {
+    position: fixed; /* Fixed position relative to viewport */
+    width: 0;
+    height: 0;
+    /* Border sizes will be set by JS */
+    border-left: 0; /* Clear previous border-left */
+    border-right: 0; /* Clear previous border-right */
+    border-bottom: 0; /* Clear previous border-bottom */
+    filter: drop-shadow(0 0 10px); /* Glow color will be animated */
+    animation: glowing-arrow-color 2s infinite alternate; /* Color animation */
+    pointer-events: none; /* Allow clicks to pass through */
+    z-index: 1000;
+}
+
+/* New animation for arrow color to match glowing-border */
+@keyframes glowing-arrow-color {
+    0% {
+        border-top-color: #008888; /* Darker Cyan */
+        filter: drop-shadow(0 0 10px rgba(0, 136, 136, 0.7));
+    }
+    50% {
+        border-top-color: #000088; /* Darker Blue */
+        filter: drop-shadow(0 0 10px rgba(0, 0, 136, 0.7));
+    }
+    100% {
+        border-top-color: #008888;
+        filter: drop-shadow(0 0 10px rgba(0, 136, 136, 0.7));
+    }
+}
+
+/* Audio Player Box Specific Styling */
+#audio-player-box {
+    /* Width and height will be set by JS */
+    /* Padding will be set by JS */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Changed to center for vertical alignment */
+    align-items: center;
+    gap: 0.5vmin; /* Adjusted gap using vmin for responsiveness */
+    /* Inherits border, background from .link-box */
+    position: fixed; /* Fixed position to allow it to float independently */
+    z-index: 10; /* Ensure it's above background elements */
+    padding: 0.5vmin; /* Added padding to ensure content fits */
+    box-sizing: border-box; /* Include padding in the element's total width and height */
+}
+
+/* Styling for the direct audio link within the box */
+#audio-player-box .audio-link {
+    font-family: var(--my-font); /* Use the custom font */
+    color: #00FFFF; /* Cyan for links, consistent with other text links */
+    text-decoration: none; /* No underline by default */
+    font-size: 1.8vmin; /* Match AUDIO_PLAYER_BUTTON_FONT_SIZE_VMIN from JS */
+    transition: text-decoration 0.1s ease;
+    text-align: center; /* Center the text */
+}
+
+#audio-player-box .audio-link:hover {
+    text-decoration: underline; /* Underline on hover */
+}
+
+
+/* Back Button Styling (for contact.html and songrequest.html) */
+.back-button-container {
+    position: fixed;
+    top: 2vh;
+    left: 2vw;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.back-arrow {
+    width: 0;
+    height: 0;
+    border-top: 2.5vh solid transparent;
+    border-bottom: 2.5vh solid transparent;
+    border-right: 4vw solid; /* Left-pointing triangle */
+    filter: drop-shadow(0 0 10px);
+    animation: glowing-arrow-color 2s infinite alternate; /* Re-use existing animation */
+    transition: transform 0.1s ease;
+}
+
+.back-arrow:hover {
+    transform: translateX(-5px); /* Slight movement on hover */
+}
+
+.back-text {
+    font-family: var(--my-font);
+    color: #00FFFF;
+    font-size: 1.2rem;
+    margin-left: 10px;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+    animation: text-flicker-subtle 2s infinite alternate;
+}
+
+@keyframes text-flicker-subtle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+.page-content {
+    margin-top: 15vh; /* Space from top to avoid header/back button */
+    max-width: 800px;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 30px;
+    border-radius: 10px;
+    border: 2px solid #00FFFF;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    z-index: 10;
+}
+
+.page-content h2 {
+    font-size: 2.5rem;
+    color: #0014FF; /* Blue for headings */
+    text-shadow: 0 0 15px rgba(0, 20, 255, 0.3);
+    margin-bottom: 1rem;
+}
+
+.page-content p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #e2e8f0;
+}

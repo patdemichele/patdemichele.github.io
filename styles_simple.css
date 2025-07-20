@@ -1,0 +1,181 @@
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+
+/* Define a CSS variable for the custom font */
+:root {
+     --my-font: 'Libre Baskerville', cursive;
+}
+
+/* Base styling for the body */
+body {
+    font-family: var(--my-font);
+    background-color: #001100; /* Dark blue-gray background */
+    color: #e2e8f0; /* Light text color */
+    margin: 0;
+    display: flex;
+    flex-direction: column; /* Allow stacking header and content */
+    justify-content: flex-start; /* Align content to the top */
+    align-items: center;
+    min-height: 100vh; /* Ensure body takes full viewport height */
+    overflow: hidden; /* Prevent scrollbars */
+    position: relative; /* Needed for positioning all canvases */
+}
+
+
+/* Header Styling */
+.main-header {
+    margin-top: 5vh; /* Space from the top */
+    margin-bottom: 1rem; /* Reduced space before new text */
+    text-align: center;
+    color: white;
+    font-size: 4rem; /* Large font size for blockiness */
+    letter-spacing: 2px; /* Add some spacing between letters */
+    text-transform: lowercase; /* Ensure lowercase styling */
+    /* Pixelation effect using multiple text shadows */
+    text-shadow:
+        1px 1px 0px white,
+        2px 2px 0px white,
+        3px 3px 0px white,
+        4px 4px 0px #00FFFF,
+        5px 5px 0px #00FFFF,
+        0 0 15px rgba(0, 255, 255, 0.7), /* Outer glow */
+        0 0 30px rgba(0, 255, 255, 0.5);
+    animation: header-flicker 2s infinite alternate; /* Subtle flicker */
+    position: relative; /* Ensure it's above other elements */
+    z-index: 11;
+    font-family: 'Times New Roman', serif; /* Keep original font for the title */
+}
+
+@keyframes header-flicker {
+    0%, 100% { opacity: 1; text-shadow: 1px 1px 0px #00FFFF, 2px 2px 0px #00FFFF, 3px 3px 0px #00FFFF, 4px 4px 0px #00FFFF, 5px 5px 0px #00FFFF, 0 0 15px rgba(0, 255, 255, 0.7), 0 0 30px rgba(0, 255, 255, 0.5); }
+    50% { opacity: 0.9; text-shadow: 1px 1px 0px #00FFFF, 2px 2px 0px #00FFFF, 3px 3px 0px #00FFFF, 0 0 10px rgba(0, 255, 255, 0.5); }
+}
+
+
+
+/* Adjust body to align content to the top */
+body {
+    justify-content: flex-start; /* Align content vertically to the top */
+}
+
+/* Container for Intro Text and Photo */
+#content-flex-container {
+    display: flex;
+    flex-direction: column; /* Stack vertically */
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem; /* Reduced gap between photo and text */
+    margin-bottom: 3rem; /* Space below this section */
+    max-width: 1200px; /* Max width for this container */
+    padding: 0 20px; /* Add some horizontal padding */
+    position: relative;
+    z-index: 10;
+}
+
+/* New Text below title */
+.intro-text {
+    font-family: var(--my-font);
+    font-size: 1.5rem; /* Smaller font size for paragraph */
+    color: #e2e8f0;
+    text-align: center; /* Changed to center */
+    max-width: 700px; /* Increased width for the text */
+    flex-shrink: 1; /* Allow text to shrink if needed */
+
+
+    animation: text-flicker-subtle 3s infinite alternate; /* Slower flicker */
+
+    text-shadow:
+        1px 1px 0px rgba(255, 255, 255, 0.1), /* Very subtle white shadow */
+        2px 2px 0px rgba(255, 255, 255, 0.08),
+        3px 3px 0px rgba(255, 255, 255, 0.06),
+        4px 4px 0px rgba(0, 255, 255, 0.04), /* Very subtle cyan shadow */
+        5px 5px 0px rgba(0, 255, 255, 0.02),
+        0 0 5px rgba(0, 255, 255, 0.1), /* Subtle outer glow */
+        0 0 10px rgba(0, 255, 255, 0.05);
+}
+
+@keyframes text-flicker-subtle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.9; } /* Less transparency when flickering */
+}
+
+/* Special glowing border animation for Box 4 */
+@keyframes glowing-border {
+    0% {
+        border-color: #008888; /* Darker Cyan */
+        box-shadow: 0 0 10px rgba(0, 136, 136, 0.5), 0 0 20px rgba(0, 136, 136, 0.3);
+    }
+    50% {
+        border-color: #000088; /* Darker Blue */
+        box-shadow: 0 0 15px rgba(0, 0, 136, 0.7), 0 0 30px rgba(0, 0, 136, 0.5);
+    }
+    100% {
+        border-color: #008888;
+        box-shadow: 0 0 10px rgba(0, 136, 136, 0.5), 0 0 20px rgba(0, 136, 136, 0.3);
+    }
+}
+
+
+/* Back Button Styling (for contact.html and songrequest.html) */
+.back-button-container {
+    position: fixed;
+    top: 2vh;
+    left: 2vw;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.back-arrow {
+    width: 0;
+    height: 0;
+    border-top: 2.5vh solid transparent;
+    border-bottom: 2.5vh solid transparent;
+    border-right: 4vw solid; /* Left-pointing triangle */
+    filter: drop-shadow(0 0 10px);
+    animation: glowing-arrow-color 2s infinite alternate; /* Re-use existing animation */
+    transition: transform 0.1s ease;
+}
+
+.back-arrow:hover {
+    transform: translateX(-5px); /* Slight movement on hover */
+}
+
+.back-text {
+    font-family: var(--my-font);
+    color: #00FFFF;
+    font-size: 1.2rem;
+    margin-left: 10px;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+    animation: text-flicker-subtle 2s infinite alternate;
+}
+
+@keyframes text-flicker-subtle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+.page-content {
+    margin-top: 15vh; /* Space from top to avoid header/back button */
+    max-width: 800px;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 30px;
+    border-radius: 10px;
+    border: 2px solid #00FFFF;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    z-index: 10;
+}
+
+.page-content h2 {
+    font-size: 2.5rem;
+    color: #0014FF; /* Blue for headings */
+    text-shadow: 0 0 15px rgba(0, 20, 255, 0.3);
+    margin-bottom: 1rem;
+}
+
+.page-content p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #e2e8f0;
+}
