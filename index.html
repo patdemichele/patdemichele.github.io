@@ -189,7 +189,6 @@
         #audioToggleBtn {
             position: fixed;
             /* top, right, width, height, font-size and padding will be set by JS */
-            background-color: #34d399; /* Green */
             color: white;
             font-family: 'Press Start 2P', cursive;
             border: none;
@@ -207,14 +206,33 @@
             line-height: 1.1; /* Adjust line height for stacked text */
             text-align: center; /* Center text horizontally */
         }
+        /* Initial state: Blue */
+        #audioToggleBtn.audio-initial {
+            background-color: #346beb; /* Blue */
+        }
+        /* Audio ON state: Green */
+        #audioToggleBtn.audio-on {
+            background-color: #34d399; /* Green */
+        }
+        /* Audio OFF (muted) state: Grey */
+        #audioToggleBtn.audio-off {
+            background-color: #888888; /* Grey */
+        }
+
         #audioToggleBtn:hover {
-            background-color: #28a776; /* Darker green */
             transform: scale(1.05);
         }
-        #audioToggleBtn.muted {
-            background-color: #888888; /* Grey when muted */
-            box-shadow: 0 0 0 2px #cccccc, 0 0 0 3px #555555;
+        /* Hover effects for specific states */
+        #audioToggleBtn.audio-initial:hover {
+            background-color: #2a5bb8; /* Darker blue on hover */
         }
+        #audioToggleBtn.audio-on:hover {
+            background-color: #28a776; /* Darker green on hover */
+        }
+        #audioToggleBtn.audio-off:hover {
+            background-color: #777777; /* Darker grey on hover */
+        }
+
 
         /* Container for Intro Text and Photo */
         #content-flex-container {
@@ -412,6 +430,11 @@
             text-shadow: 1px 1px 0px #00FFFF; /* Kept cyan shadow for a pop */
         }
 
+        /* Specific rule for the audio file name within the audio player box */
+        #audio-player-box .link-title {
+            margin-bottom: 0; /* Remove extra space below the audio file name */
+        }
+
         /* Styling for text links within boxes */
         .text-link {
             color: #00FFFF; /* Cyan for links */
@@ -470,38 +493,26 @@
             flex-direction: column;
             justify-content: center; /* Changed to center for vertical alignment */
             align-items: center;
-            gap: 5px; /* Space between title and button */
+            gap: 0.5vmin; /* Adjusted gap using vmin for responsiveness */
             /* Inherits border, background from .link-box */
             position: fixed; /* Fixed position to allow it to float independently */
             z-index: 10; /* Ensure it's above background elements */
+            padding: 0.5vmin; /* Added padding to ensure content fits */
+            box-sizing: border-box; /* Include padding in the element's total width and height */
         }
 
-        #audio-player-box .audio-player-button {
-            background-color: transparent; /* Make background transparent */
-            border: none; /* Remove border */
-            box-shadow: none; /* Remove shadow */
-            color: white;
-            /* padding and font-size will be set by JS */
-            border-radius: 5px;
-            font-family: var(--my-font);
-            cursor: pointer;
-            transition: color 0.2s ease; /* Transition color on hover */
-            display: flex; /* Use flex to center SVG icon */
-            align-items: center;
-            justify-content: center;
-            padding: 0; /* Remove padding from button itself, let SVG size handle it */
+        /* Styling for the direct audio link within the box */
+        #audio-player-box .audio-link {
+            font-family: var(--my-font); /* Use the custom font */
+            color: #00FFFF; /* Cyan for links, consistent with other text links */
+            text-decoration: none; /* No underline by default */
+            font-size: 1.8vmin; /* Match AUDIO_PLAYER_BUTTON_FONT_SIZE_VMIN from JS */
+            transition: text-decoration 0.1s ease;
+            text-align: center; /* Center the text */
         }
 
-        #audio-player-box .audio-player-button:hover {
-            color: #00FFFF; /* Cyan on hover */
-            background-color: transparent; /* Keep transparent */
-        }
-
-        /* SVG icon styling within buttons */
-        #audio-player-box .audio-player-button svg {
-            width: 1.5em; /* Relative to font-size */
-            height: 1.5em; /* Relative to font-size */
-            color: currentColor; /* Inherit color from parent button */
+        #audio-player-box .audio-link:hover {
+            text-decoration: underline; /* Underline on hover */
         }
 
 
@@ -576,7 +587,7 @@
     <!-- Custom Stop Button -->
     <button id="stop-discs-button">FREEZE</button>
     <!-- Audio Toggle Button -->
-    <button id="audioToggleBtn">Audio<br>ON</button>
+    <button id="audioToggleBtn">CLICK<br>TO<br>TURN<br>AUDIO<br>ON</button>
 
     <!-- Background Lattice Canvas -->
     <canvas id="background-lattice-canvas"></canvas>
@@ -611,17 +622,8 @@
 
     <!-- New Audio Player Box (moved outside link-boxes-container) -->
     <div id="audio-player-box" class="audio-player-box link-box" data-interactive-element>
-        <span class="link-title" id="audioFileName">???.mp3</span>
-        <button id="audioPlayPauseBtn" class="audio-player-button">
-            <!-- Play Icon (triangle) -->
-            <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                <path d="M8 5v14l11-7z"/>
-            </svg>
-            <!-- Pause Icon (two bars, hidden by default) -->
-            <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 hidden">
-                <path d="M6 4h4v16H6zm8 0h4v16h-4z"/>
-            </svg>
-        </button>
+        <!-- The audio file name is now a direct link -->
+        <a href="assets/mysingle.mp3" target="_blank" class="audio-link" id="audioFileName">? .mp3</a>
     </div>
 
     <!-- New Link Boxes Container -->
@@ -701,9 +703,8 @@
             CD_RIGHT_INITIAL_DY: 0.14,
 
             // Audio Player Box Dimensions (now based on vw/vh)
-            AUDIO_PLAYER_BOX_WIDTH_VW: 8, // Slightly smaller
-            AUDIO_PLAYER_BOX_HEIGHT_VH: 15, // Slightly smaller
-            ENABLE_AUDIO_PLAYER_COLLISIONS: false, // Toggle collision for audio player box
+            AUDIO_PLAYER_BOX_WIDTH_VW: 6, // Slightly smaller
+            AUDIO_PLAYER_BOX_HEIGHT_VH: 6, // Slightly smaller
 
             // Audio Player Box Drifting Parameters (absolute viewport min/max)
             AUDIO_PLAYER_MIN_X_VW: 1, // Minimum X position from left of viewport
@@ -713,9 +714,8 @@
             AUDIO_PLAYER_INITIAL_DX: 0.3, // Reduced speed
             AUDIO_PLAYER_INITIAL_DY: 0.03, // Reduced speed
 
-            // Audio Player Button Sizing
-            AUDIO_PLAYER_BUTTON_FONT_SIZE_VMIN: 1.8,
-            AUDIO_PLAYER_BUTTON_PADDING_VMIN: 1.5,
+            // Audio Player Button Sizing (now refers to the link text size)
+            AUDIO_PLAYER_LINK_FONT_SIZE_VMIN: 1.8,
 
             // Button Positioning (Fixed to viewport, using vw/vh)
             STOP_BUTTON_TOP_VH: 2,
@@ -801,22 +801,18 @@
         const latticeCtx = backgroundLatticeCanvas ? backgroundLatticeCanvas.getContext('2d') : null;
         const stopDiscsButton = document.getElementById('stop-discs-button');
         const audioToggleBtn = document.getElementById('audioToggleBtn');
-        const audioPlayPauseBtn = document.getElementById('audioPlayPauseBtn');
         const audioPlayerBox = document.getElementById('audio-player-box');
+        const audioFileNameLink = document.getElementById('audioFileName'); // Renamed for clarity
         const userPhotoPlaceholder = document.getElementById('user-photo-placeholder');
         const songRequestArrow = document.getElementById('song-request-arrow');
         const mainHeader = document.getElementById('main-header'); // Changed to ID for specific check
         const contentFlexContainer = document.getElementById('content-flex-container');
         const linkBoxesContainer = document.querySelector('.link-boxes-container');
-        const playIcon = document.getElementById('play-icon');
-        const pauseIcon = document.getElementById('pause-icon');
 
         // Select all link boxes by their specific IDs for direct assignment (only on index.html)
         const boxLatest = document.getElementById('box-latest');
         const boxLinks = document.getElementById('box-links');
         const boxContact = document.getElementById('box-contact');
-        // boxSongRequest is now fixed, so it's not part of the animating linkBoxes array
-        // if (boxSongRequest) linkBoxes.push(boxSongRequest);
         const boxSongRequest = document.getElementById('box-song-request'); // Keep this reference for fixed positioning
         const linkBoxes = [];
         if (boxLatest) linkBoxes.push(boxLatest);
@@ -841,11 +837,10 @@
             'assets/clank6.mp3', 'assets/clank7.mp3', 'assets/clank8.mp3', 'assets/clank9.mp3', 'assets/clank10.mp3'
         ];
         let clankPlayers;
-        let audioPlayer;
         let backgroundPlayer; // New background audio player
-        let isPlayerPlaying = false;
-        let isAudioOn = true; // Default to ON
+        let isAudioOn = false; // Start false because browsers block autoplay
         let areCollisionSoundsEnabled = true; // New flag for collision sounds
+        let audioFirstInteraction = true; // New flag for audio toggle button's initial state
 
         // CD animation state
         let cdLeftX = 0, cdLeftY = 0;
@@ -884,48 +879,22 @@
                         console.log("Clank sounds loaded!");
                     }).toDestination();
 
-                    audioPlayer = new Tone.Player("assets/mysingle.mp3", () => { // Changed to my_single.mp3
-                        console.log("Main audio loaded!");
-                    }).toDestination();
-                    audioPlayer.loop = true;
-
+                    // Background music player
                     backgroundPlayer = new Tone.Player("assets/background.mp3", () => { // New background music
                         console.log("Background music loaded!");
-                        if (!isPlayerPlaying && isAudioOn) { // Only start background if main player isn't playing and audio is globally on
+                        if (isAudioOn) { // Only start background if audio is globally on
                             backgroundPlayer.start();
                         }
                     }).toDestination();
                     backgroundPlayer.loop = true;
 
-                    // Set up onEnded callback for the main audio player
-                    audioPlayer.onstop = audioPlayer.onended = () => {
-                        isPlayerPlaying = false;
-                        updateAudioPlayerButtonIcon();
-                        updateCollisionSoundState(); // Re-enable collision sounds
-                        if (backgroundPlayer && backgroundPlayer.loaded && isAudioOn) {
-                            backgroundPlayer.start(); // Resume background music
-                        }
-                    };
-
                 }).catch(e => console.error("Error starting AudioContext:", e));
             }
         }
 
-        function updateAudioPlayerButtonIcon() {
-            if (playIcon && pauseIcon) {
-                if (isPlayerPlaying) {
-                    playIcon.classList.add('hidden');
-                    pauseIcon.classList.remove('hidden');
-                } else {
-                    playIcon.classList.remove('hidden');
-                    pauseIcon.classList.add('hidden');
-                }
-            }
-        }
-
         function updateCollisionSoundState() {
-            // Collision sounds are enabled if global audio is ON AND main player is NOT playing
-            areCollisionSoundsEnabled = isAudioOn && !isPlayerPlaying;
+            // Collision sounds are enabled if global audio is ON
+            areCollisionSoundsEnabled = isAudioOn;
         }
 
         // --- Ripple Effect Functions (Used on all pages) ---
@@ -1163,9 +1132,9 @@
                     const b2 = linkBoxes[j];
 
                     // Exclude 'box-song-request' from collisions always
-                    // Exclude 'audio-player-box' from collisions based on CONFIG.ENABLE_AUDIO_PLAYER_COLLISIONS
+                    // Exclude 'audio-player-box' from collisions always
                     if ((b1.id === 'box-song-request' || b2.id === 'box-song-request') ||
-                        (!CONFIG.ENABLE_AUDIO_PLAYER_COLLISIONS && (b1.id === 'audio-player-box' || b2.id === 'audio-player-box'))) {
+                        (b1.id === 'audio-player-box' || b2.id === 'audio-player-box')) {
                         continue;
                     }
 
@@ -1326,11 +1295,9 @@
             audioToggleBtn.style.top = `${stopButtonRect.bottom + (CONFIG.AUDIO_TOGGLE_BUTTON_TOP_OFFSET_FROM_STOP_BUTTON_BOTTOM_VH * window.innerHeight * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR)}px`;
             audioToggleBtn.style.right = `${CONFIG.AUDIO_TOGGLE_BUTTON_RIGHT_VW * CONFIG.GLOBAL_SCALE_FACTOR}vw`;
 
-            // Apply font size and padding to audio player button
-            if (audioPlayPauseBtn) {
-                audioPlayPauseBtn.style.fontSize = `${CONFIG.AUDIO_PLAYER_BUTTON_FONT_SIZE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-                // Use a fixed padding for the button itself, let SVG size handle icon
-                audioPlayPauseBtn.style.padding = `${CONFIG.AUDIO_PLAYER_BUTTON_PADDING_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
+            // Apply font size to the audio file name link
+            if (audioFileNameLink) {
+                audioFileNameLink.style.fontSize = `${CONFIG.AUDIO_PLAYER_LINK_FONT_SIZE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
             }
 
             // Set initial positions for drifting CDs
@@ -1666,42 +1633,37 @@
             }
 
             if (audioToggleBtn) {
+                // Set initial class for blue color
+                audioToggleBtn.classList.add('audio-initial');
+
                 audioToggleBtn.addEventListener('click', () => {
                     if (!audioContextStarted) { startAudioContext(); setTimeout(() => audioToggleBtn.click(), 100); return; }
-                    isAudioOn = !isAudioOn;
+                    
+                    if (audioFirstInteraction) {
+                        // First click: turn audio ON, change from blue to green
+                        audioToggleBtn.classList.remove('audio-initial');
+                        isAudioOn = true;
+                        audioToggleBtn.classList.add('audio-on');
+                        audioFirstInteraction = false;
+                    } else {
+                        // Subsequent clicks: toggle between green/grey
+                        isAudioOn = !isAudioOn;
+                        audioToggleBtn.classList.toggle('audio-on', isAudioOn);
+                        audioToggleBtn.classList.toggle('audio-off', !isAudioOn);
+                    }
+
                     if (Tone && Tone.Master) Tone.Master.mute = !isAudioOn;
-                    audioToggleBtn.innerHTML = "Audio<br>" + (isAudioOn ? "ON" : "OFF");
-                    audioToggleBtn.classList.toggle('muted', !isAudioOn);
+                    audioToggleBtn.innerHTML = isAudioOn ? "AUDIO<br>ON" : "AUDIO<br>OFF"; // Text for subsequent toggles
                     updateCollisionSoundState(); // Update collision sound state when global audio toggles
                     
                     // Control background music based on global audio state
                     if (backgroundPlayer && backgroundPlayer.loaded) {
-                        if (isAudioOn && !isPlayerPlaying) {
+                        if (isAudioOn) {
                             backgroundPlayer.start();
                         } else {
                             backgroundPlayer.stop();
                         }
                     }
-                });
-            }
-
-            if (audioPlayPauseBtn) {
-                audioPlayPauseBtn.addEventListener('click', () => {
-                    if (!audioContextStarted) { startAudioContext(); setTimeout(() => audioPlayPauseBtn.click(), 100); return; }
-                    // Only play if audioPlayer is loaded
-                    if (audioPlayer && audioPlayer.loaded) {
-                        if (isPlayerPlaying) {
-                            audioPlayer.stop();
-                        } else {
-                            audioPlayer.start();
-                            if (backgroundPlayer && backgroundPlayer.loaded) {
-                                backgroundPlayer.stop(); // Stop background music when main player starts
-                            }
-                        }
-                        isPlayerPlaying = !isPlayerPlaying;
-                        updateAudioPlayerButtonIcon(); // Update icon based on new state
-                        updateCollisionSoundState(); // Update collision sound state when player state changes
-                    } else { console.warn("Audio player not loaded or initialized yet."); }
                 });
             }
 
