@@ -73,7 +73,6 @@
             display: flex;
             flex-direction: column;
             align-items: flex-end; /* Align items to the right side of this container */
-            padding-right: 2rem;
         }
         /* The container for releases on the right side of the timeline */
         .release-list-right {
@@ -82,15 +81,16 @@
             display: flex;
             flex-direction: column;
             align-items: flex-start; /* Align items to the left side of this container */
-            padding-left: 2rem;
         }
         .release-item {
             position: absolute;
-            /* text-align: right; <-- Removed to allow flexbox parent to align item */
         }
-        /* Styling for releases on the right side */
-        .release-item.right {
-            /* text-align: left; <-- Removed to allow flexbox parent to align item */
+        /* Fix the horizontal alignment for left and right items */
+        .release-list-left .release-item {
+            right: 0; /* Align left-side items to the right */
+        }
+        .release-list-right .release-item {
+            left: 0; /* Align right-side items to the left */
         }
         /* Style for the link emoji */
         .link-emoji {
@@ -127,14 +127,14 @@
         <!-- Chronology Section -->
         <section class="mt-8">
             <div class="flex">
-                <div id="release-list-left" class="release-list-left"></div>
+                <div id="release-list-left" class="release-list-left pr-2 md:pr-8"></div>
                 <!-- The interactive timeline container in the center -->
                 <div id="timeline-container" class="timeline-container w-[150px] mx-auto">
                     <!-- The date display follows the mouse, positioned in the center -->
                     <span id="timeline-date-display" class="timeline-date-display"></span>
                     <div id="interactive-timeline-axis" class="interactive-timeline-axis"></div>
                 </div>
-                <div id="release-list-right" class="release-list-right"></div>
+                <div id="release-list-right" class="release-list-right pl-2 md:pl-8"></div>
             </div>
         </section>
     </main>
@@ -182,14 +182,11 @@
 
         // Array of release objects. Edit this to change the chronology.
         const RELEASES = [
-
-
             {
                 date: new Date('2025-08-01'),
                 description: 'Labubu Factory (??)',
                 position: 'left',
-                links: [
-                ]
+                links: []
             },
             {
                 date: new Date('2025-07-17'),
@@ -201,7 +198,6 @@
                     { type: 'Bandcamp', color: COLOR_CONSTANTS.bandcamp, url: 'https://djmakeclean.bandcamp.com/album/sticky-geckom-tape-dmv-scammers' }
                 ]
             },
-
             {
                 date: new Date('2025-06-27'),
                 description: 'ked bem',
@@ -211,7 +207,6 @@
                     { type: 'Bandcamp', color: COLOR_CONSTANTS.bandcamp, url: 'https://djmakeclean.bandcamp.com/album/ked-bem' }
                 ]
             },
-
             {
                 date: new Date('2025-03-28'),
                 description: 'tampa (vip)',
@@ -312,7 +307,7 @@
                     
                     const releaseContent = `
                         <div class="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
-                            <p class="text-right text-gray-700 text-sm">${release.description}</p>
+                            <p class="text-right text-gray-700 text-xs md:text-sm">${release.description}</p>
                             <div class="flex items-center space-x-2">
                                 <span class="link-emoji">🔗</span>
                                 ${linksHtml}
@@ -334,7 +329,7 @@
                                     <span class="link-emoji">🔗</span>
                                     ${linksHtml}
                                 </div>
-                                <p class="text-gray-700 text-sm">${release.description}</p>
+                                <p class="text-gray-700 text-xs md:text-sm">${release.description}</p>
                             </div>
                         `;
                         releaseListRight.appendChild(releaseItemDiv);
