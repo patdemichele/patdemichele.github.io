@@ -1,1129 +1,400 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Make Clean</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <!-- Tone.js for audio generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <!-- Courier Prime Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Courier Prime', monospace;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        /* Custom styles for link squares */
+        .link-square {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 0.25rem;
+            transition: transform 0.2s ease-in-out;
+        }
+        .link-square:hover {
+            transform: scale(1.1);
+        }
+        /* Styles for the interactive timeline container */
+        .timeline-container {
+            position: relative;
+            display: flex;
+            justify-content: center; /* Center the timeline axis */
+            align-items: stretch;
+            height: 400px; /* Fixed height for the timeline */
+            border-top: 2px solid black;
+            border-bottom: 2px solid black;
+        }
+        /* The invisible interactive bar in the center */
+        .interactive-timeline-axis {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px; /* Wider interactive area for easier use */
+            height: 100%;
+            cursor: pointer;
+        }
+        /* The date display that follows the mouse */
+        .timeline-date-display {
+            position: absolute;
+            /* Positioned relative to the interactive-timeline-axis */
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            line-height: 1rem;
+            white-space: nowrap;
+            color: #000;
+            pointer-events: none;
+            user-select: none;
+            opacity: 0; /* Initially hidden */
+            transition: opacity 0.2s ease-in-out;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            z-index: 10; /* Ensure it's on top of other elements */
+        }
+        /* The container for releases on the left side of the timeline */
+        .release-list-left {
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end; /* Align items to the right side of this container */
+            padding-right: 2rem;
+        }
+        /* The container for releases on the right side of the timeline */
+        .release-list-right {
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Align items to the left side of this container */
+            padding-left: 2rem;
+        }
+        .release-item {
+            position: absolute;
+            /* text-align: right; <-- Removed to allow flexbox parent to align item */
+        }
+        /* Styling for releases on the right side */
+        .release-item.right {
+            /* text-align: left; <-- Removed to allow flexbox parent to align item */
+        }
+        /* Style for the link emoji */
+        .link-emoji {
+            display: inline-block;
+            margin-right: 0.25rem;
+        }
+    </style>
 </head>
-<body>
+<body class="min-h-screen p-4 flex justify-center items-center">
 
-    <!-- Custom Stop Button -->
-    <button id="stop-discs-button">FREEZE</button>
-    <!-- Audio Toggle Button -->
-    <button id="audioToggleBtn">CLICK<br>TO<br>TURN<br>AUDIO<br>ON</button>
+    <!-- Main Container for all content -->
+    <main class="w-full max-w-4xl bg-white text-gray-800 rounded-xl shadow-2xl overflow-hidden md:p-12 p-6">
+        <!-- Header Section -->
+        <header class="text-black p-6 -mt-6 -mx-6 bg-gray-200 rounded-t-xl mb-8 md:mb-12 flex items-center justify-between">
+            <h1 class="text-5xl font-extrabold tracking-tight text-left pl-4">
+                <span class="text-gray-800">Make</span> <span class="text-gray-900">Clean</span>
+            </h1>
+            <img src="assets/me.png" alt="Artist Photo" class="w-24 h-24 rounded-lg object-cover shadow-md">
+        </header>
 
-    <!-- Background Lattice Canvas -->
-    <canvas id="background-lattice-canvas"></canvas>
-
-    <!-- Header (dj make clean) -->
-    <header class="main-header" id="main-header">
-        <h1>Make Clean</h1>
-    </header>
-
-    <!-- Container for Intro Text and Photo -->
-    <div id="content-flex-container">
-        <!-- Placeholder for the user's photo -->
-        <div id="user-photo-placeholder">
-            <img src="assets/me.png" alt="Your Photo" class="album-art"/>
-        </div>
-
-        <!-- New Text below title -->
-        <p class="intro-text">
-
-            Creating things digitally. Sunnyvale CA
-            <br></br>
-            breaks, bass, hyperpop, techno
-
-        </p>
-    </div>
-
-    <!-- Canvas for Left CD -->
-    <canvas id="cd-canvas-left"></canvas>
-
-    <!-- Canvas for Right CD -->
-    <canvas id="cd-canvas-right"></canvas>
-
-    <!-- New Audio Player Box (moved outside link-boxes-container) -->
-    <div id="audio-player-box" class="audio-player-box link-box" data-interactive-element>
-        <!-- The audio file name is now a direct link -->
-        <a href="assets/work.mp3" target="_blank" class="audio-link" id="audioFileName">???.mp3</a>
-    </div>
-
-    <!-- New Link Boxes Container -->
-    <div class="link-boxes-container">
-        <!-- Box 1: Latest -->
-        <div id="box-latest" class="link-box" data-interactive-element>
-            <span class="link-title">Latest</span>
-            <img src="assets/stickygeckomtape.png" alt="Latest Single Album Art" class="album-art"/>
-            <div class="links-group">
-                <a href="https://soundcloud.com/djmakeclean/sets/sticky-geckom-tape-dmv-scammers" target="_blank" class="text-link">SoundCloud</a>
-                <a href="https://djmakeclean.bandcamp.com/album/sticky-geckom-tape-dmv-scammers" target="_blank" class="text-link">Bandcamp</a>
-                <a href="https://open.spotify.com/album/0YlJUeYlLeEKvNuqT9ssbX?si=EDSdsFANTUuRbe5ibHXbVg" target="_blank" class="text-link">Spotify</a>
+        <!-- Artist Bio and Links Section -->
+        <section class="mb-12">
+            <div class="text-lg leading-relaxed text-left">
+                <p class="mb-4 text-gray-700">
+                    Make Clean is the moniker of [Artist's Real Name], an electronic music producer known for their intricate sound design and evocative melodies. Hailing from [City/Region], Make Clean began experimenting with synthesizers and drum machines in the early 2010s.
+                </p>
+                <!-- Links Section -->
+                <div class="flex flex-col items-start space-y-2 mt-4" id="social-links-container">
+                    <!-- Social links will be rendered here by JavaScript -->
+                </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Box 2: Links -->
-        <div id="box-links" class="link-box" data-interactive-element>
-            <span class="link-title">🔗</span>
-            <p>Music: <a href="https://soundcloud.com/djmakeclean" target="_blank" class="text-link">SoundCloud</a> <a href="https://djmakeclean.bandcamp.com/" target="_blank" class="text-link">Bandcamp</a> <a href="https://open.spotify.com/artist/1WJIUUAF2HCnL1H4QoLG6w?si=lx-vYmVLRQeVLRqcl3WdeQ" target="_blank" class="text-link">Spotify</a> <a href="https://www.youtube.com/@djmakeclean" target="_blank" class="text-link">YouTube</a>  </p>
-            <p>Gumroad: <a href="https://djmakeclean.gumroad.com/" target="_blank" class="text-link">gumroad</a></p>
-            <p>Socials:  <a href="https://instagram.com/djmakeclean" target="_blank" class="text-link">Instagram</a></p>
-        </div>
-
-        <!-- Box 3: Contact Me -->
-        <a href="contact.html" id="box-contact" class="link-box link-box-full" data-interactive-element>
-            <span class="link-title">Contact Me For...</span>
-        </a>
-
-        <!-- Box 4: Let Me Make You A Song (now fixed position, outside this container's animation) -->
-        <!-- This element is now positioned directly in the body by JS, not within link-boxes-container -->
-    </div>
-
-    <!-- Box 4: Let Me Make You A Song (Moved here for fixed positioning) -->
-    <a href="songrequest.html" id="box-song-request" class="link-box link-box-full special-box" data-interactive-element>
-        <span class="link-title">Let Me<br>Make You<br>A Song</span>
-    </a>
-
-    <!-- Arrow for Box 4 -->
-    <div id="song-request-arrow" class="floating-arrow"></div>
-
-    <!-- Custom Cursor Element -->
-    <div id="custom-cursor"></div>
-
-    <!-- Canvas for Ripples -->
-    <canvas id="ripple-canvas"></canvas>
+        <!-- Chronology Section -->
+        <section class="mt-8">
+            <div class="flex">
+                <div id="release-list-left" class="release-list-left"></div>
+                <!-- The interactive timeline container in the center -->
+                <div id="timeline-container" class="timeline-container w-[150px] mx-auto">
+                    <!-- The date display follows the mouse, positioned in the center -->
+                    <span id="timeline-date-display" class="timeline-date-display"></span>
+                    <div id="interactive-timeline-axis" class="interactive-timeline-axis"></div>
+                </div>
+                <div id="release-list-right" class="release-list-right"></div>
+            </div>
+        </section>
+    </main>
 
     <script>
-        // --- CONFIGURATION CONSTANTS ---
-        // Adjust these values to easily change the layout, speeds, and other properties.
-        const CONFIG = {
-            // Global Scaling Factor: Adjust this to scale all elements proportionally
-            GLOBAL_SCALE_FACTOR: 1.0, // 1.0 = original size, 0.5 = half size, 2.0 = double size
+        // Get references to the DOM elements
+        const timelineContainer = document.getElementById('interactive-timeline-axis');
+        const releaseListLeft = document.getElementById('release-list-left');
+        const releaseListRight = document.getElementById('release-list-right');
+        const dateDisplay = document.getElementById('timeline-date-display');
+        const socialLinksContainer = document.getElementById('social-links-container');
 
-            // General Animation & Cursor
-            RIPPLE_SPEED: 4,
-            RIPPLE_FADE_RATE: 0.04,
-            RIPPLE_COLOR: '#FFFFFF',
-            RIPPLE_INITIAL_LINE_WIDTH: 2,
-            RIPPLE_LINE_DECAY: 0.08,
-            CURSOR_HUE_RANGE: 360, // Max hue value for cursor color
-            CURSOR_BORDER_HORIZONTAL_VW: 1.5, // 15px
-            CURSOR_BORDER_BOTTOM_VH: 2.5,     // 25px
+        /**
+         * ======================================
+         * CONFIGURATION CONSTANTS
+         * ======================================
+         * Easily edit these constants to change the website's behavior.
+         */
 
-            // CD Dimensions (now based on vmin for squareness)
-            CD_CANVAS_LEFT_SIZE_VMIN: 15, // 150px
-            CD_CANVAS_RIGHT_SIZE_VMIN: 10, // 100px
-
-            // CD Drifting Parameters (speeds remain absolute, offsets become vw/vh)
-            CD_LEFT_INITIAL_OFFSET_X_FROM_HEADER_LEFT_VW: 4, // 40px
-            CD_LEFT_INITIAL_OFFSET_Y_FROM_HEADER_CENTER_VH: 0,
-            CD_LEFT_INITIAL_DX: 0.11,
-            CD_LEFT_INITIAL_DY: 0.12,
-
-            CD_RIGHT_INITIAL_OFFSET_X_FROM_HEADER_RIGHT_VW: 4,
-            CD_RIGHT_INITIAL_OFFSET_Y_FROM_HEADER_CENTER_VH: 0,
-            CD_RIGHT_INITIAL_DX: 0.19,
-            CD_RIGHT_INITIAL_DY: 0.14,
-
-            // Audio Player Box Dimensions (now based on vw/vh)
-            AUDIO_PLAYER_BOX_WIDTH_VW: 6, // Slightly smaller
-            AUDIO_PLAYER_BOX_HEIGHT_VH: 6, // Slightly smaller
-
-            // Audio Player Box Drifting Parameters (absolute viewport min/max)
-            AUDIO_PLAYER_MIN_X_VW: 1, // Minimum X position from left of viewport
-            AUDIO_PLAYER_MAX_X_VW: 20, // Maximum X position from left of viewport
-            AUDIO_PLAYER_MIN_Y_VH: 10, // Minimum Y position from top of viewport
-            AUDIO_PLAYER_MAX_Y_VH: 50, // Maximum Y position from top of viewport
-            AUDIO_PLAYER_INITIAL_DX: 0.3, // Reduced speed
-            AUDIO_PLAYER_INITIAL_DY: 0.03, // Reduced speed
-
-            // Audio Player Button Sizing (now refers to the link text size)
-            AUDIO_PLAYER_LINK_FONT_SIZE_VMIN: 1.8,
-
-            // Button Positioning (Fixed to viewport, using vw/vh)
-            STOP_BUTTON_TOP_VH: 2,
-            STOP_BUTTON_RIGHT_VW: 2,
-            STOP_BUTTON_SIZE_VMIN: 12,
-            STOP_BUTTON_PADDING_VMIN: 3.75,
-            STOP_BUTTON_FONT_SIZE_VMIN: 1.5,
-            
-            AUDIO_TOGGLE_BUTTON_RIGHT_VW: 2,
-            AUDIO_TOGGLE_BUTTON_TOP_OFFSET_FROM_STOP_BUTTON_BOTTOM_VH: 10,
-            AUDIO_TOGGLE_BUTTON_SIZE_VMIN: 12,
-            AUDIO_TOGGLE_BUTTON_FONT_SIZE_VMIN: 1.5,
-            AUDIO_TOGGLE_BUTTON_PADDING_VMIN: 3.75,
-
-            // User Photo Placeholder Dimensions (vmin for square)
-            USER_PHOTO_PLACEHOLDER_SIZE_VMIN: 15,
-
-            // Link Boxes Container Positioning (margin-top and dimensions)
-            LINK_BOXES_CONTAINER_TOP_MARGIN_OFFSET_FROM_CONTENT_BOTTOM_VH: 2, // Reduced margin to move it higher
-            LINK_BOXES_CONTAINER_MAX_WIDTH_VW: 65,
-            LINK_BOXES_CONTAINER_HEIGHT_VH: 50,
-
-            // Link Box Movement Parameters (scaled by vmin)
-            LINK_BOX_MOVE_RANGE_VMIN: 8,
-
-            // General Link Box Padding (applied to all, except boxLatest which has its own)
-            LINK_BOX_VERTICAL_PADDING_VMIN: 2,
-            LINK_BOX_HORIZONTAL_PADDING_VMIN: 2,
-
-            // Latest Box specific dimensions and padding
-            BOX_LATEST_ALBUM_ART_SIZE_VMIN: 30, // Target size for the album art itself
-            BOX_LATEST_VERTICAL_PADDING_VMIN: 1.5,
-            BOX_LATEST_HORIZONTAL_PADDING_VMIN: 1.5,
-            BOX_LATEST_INITIAL_X_VW: 10, // Initial X position relative to viewport width
-            BOX_LATEST_INITIAL_Y_VH: 40, // Initial Y position relative to viewport height
-            BOX_LATEST_DX: 0.08,
-            BOX_LATEST_DY: 0.04,
-
-            // Other Link Box Dimensions & Positions (as percentages of container)
-            BOX_LINKS_WIDTH_PERCENT: 30,
-            BOX_LINKS_HEIGHT_PERCENT: 42,
-            BOX_LINKS_INITIAL_X_PERCENT: 35, // This is relative to container, will be adjusted
-            BOX_LINKS_INITIAL_Y_PERCENT: -15, // This is relative to container, will be adjusted
-            BOX_LINKS_DX: -0.20,
-            BOX_LINKS_DY: 0.20,
-
-            // Contact Me Box: Adjust position to be under Links
-            BOX_CONTACT_WIDTH_PERCENT: 20,
-            BOX_CONTACT_HEIGHT_PERCENT: 20,
-            BOX_CONTACT_DX: 0.35,
-            BOX_CONTACT_DY: -0.83,
-
-            // Box 4 (Let Me Make You A Song) - New fixed positioning relative to viewport
-            BOX_SONG_REQUEST_WIDTH_VW: 10, // Using VW for fixed positioning, matched with STOP_BUTTON_SIZE_VMIN
-            BOX_SONG_REQUEST_HEIGHT_VH: 12, // Using VH for fixed positioning, matched with STOP_BUTTON_SIZE_VMIN
-            BOX_SONG_REQUEST_RIGHT_OFFSET_VW: 2, // Aligned with STOP_BUTTON_RIGHT_VW
-            BOX_SONG_REQUEST_BOTTOM_OFFSET_VH: 5, // Offset from bottom
-            BOX_SONG_REQUEST_DX: 0,
-            BOX_SONG_REQUEST_DY: 0,
-            BOX_SONG_REQUEST_MOVE_RANGE_VMIN: 0, // Static box
-            BOX_SONG_REQUEST_TITLE_FONT_SCALE_VMIN: 1.5, // New: Smaller font for this box
-
-            // Arrow Constants (using vw/vh) - UPDATED FOR DOWNWARD POINTING
-            ARROW_WIDTH_VW: 4, // Base width of the arrow
-            ARROW_HEIGHT_VH: 2.5, // Height of the arrow
-            ARROW_GAP_FROM_BOX_VH: 10, // Vertical gap between the arrow and the box
-
-            // Font Scaling for Link Boxes
-            LINK_BOX_TITLE_FONT_SCALE_VMIN: 2.0,
-            LINK_BOX_TEXT_LINK_FONT_SCALE_VMIN: 1.5,
-            LINK_BOX_PARAGRAPH_FONT_SCALE_VMIN: 1.8
+        // Set the start date of the timeline by specifying how many months in the past it should begin.
+        const START_DATE_MONTHS_AGO = 10;
+        const TIMELINE_HEIGHT = 400; // The fixed height of the timeline in pixels.
+        
+        // Define color constants for the link squares.
+        const COLOR_CONSTANTS = {
+            spotify: 'bg-green-500',
+            bandcamp: 'bg-blue-500',
+            soundcloud: 'bg-orange-500',
+            youtube: 'bg-red-500',
         };
 
-        // --- DOM Element References (Conditional based on page) ---
-        const customCursor = document.getElementById('custom-cursor');
-        const rippleCanvas = document.getElementById('ripple-canvas');
-        const rippleCtx = rippleCanvas ? rippleCanvas.getContext('2d') : null;
-        const cdCanvasLeft = document.getElementById('cd-canvas-left');
-        const cdCtxLeft = cdCanvasLeft ? cdCanvasLeft.getContext('2d') : null;
-        const cdCanvasRight = document.getElementById('cd-canvas-right');
-        const cdCtxRight = cdCanvasRight ? cdCanvasRight.getContext('2d') : null;
-        const backgroundLatticeCanvas = document.getElementById('background-lattice-canvas');
-        const latticeCtx = backgroundLatticeCanvas ? backgroundLatticeCanvas.getContext('2d') : null;
-        const stopDiscsButton = document.getElementById('stop-discs-button');
-        const audioToggleBtn = document.getElementById('audioToggleBtn');
-        const audioPlayerBox = document.getElementById('audio-player-box');
-        const audioFileNameLink = document.getElementById('audioFileName'); // Renamed for clarity
-        const userPhotoPlaceholder = document.getElementById('user-photo-placeholder');
-        const songRequestArrow = document.getElementById('song-request-arrow');
-        const mainHeader = document.getElementById('main-header'); // Changed to ID for specific check
-        const contentFlexContainer = document.getElementById('content-flex-container');
-        const linkBoxesContainer = document.querySelector('.link-boxes-container');
-
-        // Select all link boxes by their specific IDs for direct assignment (only on index.html)
-        const boxLatest = document.getElementById('box-latest');
-        const boxLinks = document.getElementById('box-links');
-        const boxContact = document.getElementById('box-contact');
-        const boxSongRequest = document.getElementById('box-song-request'); // Keep this reference for fixed positioning
-        const linkBoxes = [];
-        if (boxLatest) linkBoxes.push(boxLatest);
-        if (boxLinks) linkBoxes.push(boxLinks);
-        if (boxContact) linkBoxes.push(boxContact);
-
-
-        // --- Global State Variables ---
-        let mouseX = 0;
-        let mouseY = 0;
-        let lastMouseX = -1;
-        let lastMouseY = -1;
-        let latticeNeedsRedraw = false;
-
-        const ripples = []; // For cursor click ripples
-        const boxRipples = []; // For collision ripples
-
-        // Tone.js setup
-        let audioContextStarted = false;
-        const clankSoundFiles = [
-            'assets/clank1.mp3', 'assets/clank2.mp3', 'assets/clank3.mp3', 'assets/clank4.mp3', 'assets/clank5.mp3',
-            'assets/clank6.mp3', 'assets/clank7.mp3', 'assets/clank8.mp3', 'assets/clank9.mp3', 'assets/clank10.mp3'
+        // Define social media links with their URLs and properties.
+        const SOCIAL_LINKS_LINE_1 = [
+            { name: 'Instagram', url: 'https://www.instagram.com/your_handle', bold_italic: true },
+            { name: 'Gumroad', url: 'https://your_gumroad_store.gumroad.com' },
+            { name: 'contact me at patd998@gmail.com', url: 'mailto:patd998@gmail.com', is_email: true }
         ];
-        let clankPlayers;
-        let backgroundPlayer; // New background audio player
-        let isAudioOn = false; // Start false because browsers block autoplay
-        let areCollisionSoundsEnabled = true; // New flag for collision sounds
-        let audioFirstInteraction = true; // New flag for audio toggle button's initial state
 
-        // CD animation state
-        let cdLeftX = 0, cdLeftY = 0;
-        let cdLeftDx = 0, cdLeftDy = 0; // Initialize to 0, will be set from CONFIG
-        let cdRightX = 0, cdRightY = 0;
-        let cdRightDx = 0, cdRightDy = 0; // Initialize to 0, will be set from CONFIG
-        let audioPlayerBoxX = 0;
-        let audioPlayerBoxY = 0;
-        let audioPlayerBoxDx = 0, audioPlayerBoxDy = 0; // Initialize to 0, will be set from CONFIG
+        const SOCIAL_LINKS_LINE_2 = [
+            { name: 'Spotify', url: 'https://open.spotify.com/artist/your_artist_id', color: COLOR_CONSTANTS.spotify },
+            { name: 'SoundCloud', url: 'https://soundcloud.com/yourhandle', color: COLOR_CONSTANTS.soundcloud },
+            { name: 'Bandcamp', url: 'https://yourband.bandcamp.com', color: COLOR_CONSTANTS.bandcamp },
+            { name: 'YouTube', url: 'https://www.youtube.com/channel/your_channel_id', color: COLOR_CONSTANTS.youtube }
+        ];
 
-        let initialCdLeftX = 0, initialCdLeftY = 0;
-        let initialCdRightX = 0, initialCdRightY = 0;
-        let initialAudioPlayerBoxX = 0;
-        let initialAudioPlayerBoxY = 0;
+        // Array of release objects. Edit this to change the chronology.
+        const RELEASES = [
 
-        let cdRadiusLeft = 0, cdLabelRadiusLeft = 0, cdHoleRadiusLeft = 0;
-        let cdRadiusRight = 0, cdLabelRadiusRight = 0, cdHoleRadiusRight = 0;
-        let cdLeftRotationAngle = 0;
-        let cdRightRotationAngle = 0;
 
-        let isDiscsDrifting = true; // Flag to control disc movement
+            {
+                date: new Date('2025-08-01'),
+                description: 'Labubu Factory (??)',
+                position: 'left',
+                links: [
+                ]
+            },
+            {
+                date: new Date('2025-07-01'),
+                description: 'sticky geckom tape / dmv scammers.',
+                position: 'right',
+                links: [
+                    { type: 'Spotify', color: COLOR_CONSTANTS.spotify, url: 'https://open.spotify.com/album/example3' },
+                    { type: 'Soundcloud', color: COLOR_CONSTANTS.soundcloud, url: 'https://soundcloud.com/yourhandle/example3' },
+                    { type: 'YouTube', color: COLOR_CONSTANTS.youtube, url: 'https://www.youtube.com/watch?v=example3' }
+                ]
+            },
 
-        // Define headerRect globally so it's accessible in animate()
-        let headerRect;
+            {
+                date: new Date('2025-05-15'),
+                description: 'ked bem',
+                position: 'left',
+                links: [
+                    { type: 'Spotify', color: COLOR_CONSTANTS.spotify, url: 'https://open.spotify.com/album/example5' },
+                    { type: 'Bandcamp', color: COLOR_CONSTANTS.bandcamp, url: 'https://yourband.bandcamp.com/track/example5' }
+                ]
+            },
 
-        // --- Audio Functions (Only for index.html) ---
-        function startAudioContext() {
-            if (!audioContextStarted && Tone && Tone.start) {
-                Tone.start().then(() => {
-                    audioContextStarted = true;
-                    console.log("AudioContext started!");
-                    Tone.Master.mute = !isAudioOn; // Mute/unmute based on global audio state
-
-                    // Initialize Tone.Players and Tone.Player after Tone.start()
-                    clankPlayers = new Tone.Players(clankSoundFiles, () => {
-                        console.log("Clank sounds loaded!");
-                    }).toDestination();
-
-                    // Background music player
-                    backgroundPlayer = new Tone.Player("assets/background.mp3", () => { // New background music
-                        console.log("Background music loaded!");
-                        if (isAudioOn) { // Only start background if audio is globally on
-                            backgroundPlayer.start();
-                        }
-                    }).toDestination();
-                    backgroundPlayer.loop = true;
-
-                }).catch(e => console.error("Error starting AudioContext:", e));
+            {
+                date: new Date('2025-04-15'),
+                description: 'tampa (vip)',
+                position: 'right',
+                links: [
+                    { type: 'Spotify', color: COLOR_CONSTANTS.spotify, url: 'https://open.spotify.com/album/example5' },
+                    { type: 'Bandcamp', color: COLOR_CONSTANTS.bandcamp, url: 'https://yourband.bandcamp.com/track/example5' }
+                ]
+            },
+            {
+                date: new Date('2025-01-03'),
+                description: '60degrees florida: 1. shhh 2. tampa 3. candyland (live)',
+                position: 'left',
+                links: [
+                    { type: 'Spotify', color: COLOR_CONSTANTS.spotify, url: 'https://open.spotify.com/album/example6' },
+                    { type: 'Bandcamp', color: COLOR_CONSTANTS.bandcamp, url: 'https://yourband.bandcamp.com/track/example6' },
+                    { type: 'Soundcloud', color: COLOR_CONSTANTS.soundcloud, url: 'https://soundcloud.com/yourhandle/example6' },
+                    { type: 'YouTube', color: COLOR_CONSTANTS.youtube, url: 'https://www.youtube.com/watch?v=example6' }
+                ]
+            },
+            {
+                date: new Date('2025-01-01'),
+                description: 'All my old stuff as Cream Coat (2019-2024)',
+                position: 'right',
+                links: [
+                    { type: 'Soundcloud', color: COLOR_CONSTANTS.soundcloud, url: 'https://soundcloud.com/yourhandle/example6' },
+                ]
             }
-        }
+        ];
 
-        function updateCollisionSoundState() {
-            // Collision sounds are enabled if global audio is ON
-            areCollisionSoundsEnabled = isAudioOn;
-        }
+        /**
+         * ======================================
+         * RENDERING & INTERACTIVITY LOGIC
+         * ======================================
+         */
 
-        // --- Ripple Effect Functions (Used on all pages) ---
-        class RippleEffect {
-            constructor(startX, startY) {
-                this.originX = startX;
-                this.originY = startY;
-                this.radius = 0;
-                this.opacity = 1;
-                this.lineWidth = CONFIG.RIPPLE_INITIAL_LINE_WIDTH;
-            }
+        // Define the date range for the timeline
+        const endDate = new Date(); // Top of the timeline (current date)
+        const startDate = new Date();
+        startDate.setMonth(endDate.getMonth() - START_DATE_MONTHS_AGO);
+        const totalDurationMs = endDate - startDate;
 
-            update() {
-                this.radius += CONFIG.RIPPLE_SPEED;
-                this.opacity -= CONFIG.RIPPLE_FADE_RATE;
-                this.lineWidth = Math.max(0.5, this.lineWidth - CONFIG.RIPPLE_LINE_DECAY);
-            }
-
-            draw() {
-                if (this.opacity <= 0 || !rippleCtx) return;
-                rippleCtx.strokeStyle = `rgba(${parseInt(CONFIG.RIPPLE_COLOR.substring(1,3), 16)}, ${parseInt(CONFIG.RIPPLE_COLOR.substring(3,5), 16)}, ${parseInt(CONFIG.RIPPLE_COLOR.substring(5,7), 16)}, ${this.opacity})`;
-                rippleCtx.lineWidth = this.lineWidth;
-                rippleCtx.beginPath();
-                rippleCtx.arc(this.originX, this.originY, this.radius, 0, Math.PI * 2);
-                rippleCtx.stroke();
-            }
-        }
-
-        function resizeRippleCanvas() {
-            if (!rippleCanvas) return;
-            rippleCanvas.width = window.innerWidth;
-            rippleCanvas.height = window.innerHeight;
-            rippleCtx.imageSmoothingEnabled = false;
-        }
-
-        function emitRipple() {
-            if (ripples.length === 0 && rippleCanvas) { // Only emit if canvas exists
-                ripples.push(new RippleEffect(mouseX, mouseY));
-            }
-        }
-
-        // --- CD Canvas Functions (Only for index.html) ---
-        function resizeCDCanvases() {
-            if (!cdCanvasLeft || !cdCanvasRight || !audioPlayerBox || !userPhotoPlaceholder) return;
-
-            // Apply scaled dimensions from CONFIG using vmin, vw, vh
-            cdCanvasLeft.style.width = `${CONFIG.CD_CANVAS_LEFT_SIZE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-            cdCanvasLeft.style.height = `${CONFIG.CD_CANVAS_LEFT_SIZE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-            cdCanvasRight.style.width = `${CONFIG.CD_CANVAS_RIGHT_SIZE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-            cdCanvasRight.style.height = `${CONFIG.CD_CANVAS_RIGHT_SIZE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-
-            audioPlayerBox.style.width = `${CONFIG.AUDIO_PLAYER_BOX_WIDTH_VW * CONFIG.GLOBAL_SCALE_FACTOR}vw`;
-            audioPlayerBox.style.height = `${CONFIG.AUDIO_PLAYER_BOX_HEIGHT_VH * CONFIG.GLOBAL_SCALE_FACTOR}vh`;
+        /**
+         * Renders the social media links.
+         */
+        function renderSocialLinks() {
+            socialLinksContainer.innerHTML = '';
             
-            userPhotoPlaceholder.style.width = `${CONFIG.USER_PHOTO_PLACEHOLDER_SIZE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-            userPhotoPlaceholder.style.height = `${CONFIG.USER_PHOTO_PLACEHOLDER_SIZE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-
-            // Update canvas element's internal width/height
-            const computedStyleLeft = getComputedStyle(cdCanvasLeft);
-            cdCanvasLeft.width = parseInt(computedStyleLeft.width);
-            cdCanvasLeft.height = parseInt(computedStyleLeft.height);
-
-            const computedStyleRight = getComputedStyle(cdCanvasRight);
-            cdCanvasRight.width = parseInt(computedStyleRight.width);
-            cdCanvasRight.height = parseInt(computedStyleRight.height);
-
-            const minDimLeft = Math.min(cdCanvasLeft.width, cdCanvasLeft.height);
-            window.cdLeftCenterX = cdCanvasLeft.width / 2; // Made global for drawCD
-            window.cdLeftCenterY = cdCanvasLeft.height / 2; // Made global for drawCD
-            cdRadiusLeft = minDimLeft * 0.45;
-            cdLabelRadiusLeft = minDimLeft * 0.1;
-            cdHoleRadiusLeft = cdRadiusLeft * 0.03;
-
-            const minDimRight = Math.min(cdCanvasRight.width, cdCanvasRight.height);
-            window.cdRightCenterX = cdCanvasRight.width / 2; // Made global for drawCD
-            window.cdRightCenterY = cdCanvasRight.height / 2; // Made global for drawCD
-            cdRadiusRight = minDimRight * 0.45;
-            cdLabelRadiusRight = minDimRight * 0.1;
-            cdHoleRadiusRight = cdRadiusRight * 0.03;
-
-            cdCtxLeft.imageSmoothingEnabled = false;
-            cdCtxRight.imageSmoothingEnabled = false;
-        }
-
-        function drawCD(ctx, centerX, centerY, rotationAngle, currentCdRadius, currentLabelRadius, currentHoleRadius, gradientStops, innerRingStrokeColor, labelAreaFillColor, innerLabelRingStrokeColor, letterFillColor, holeFillColor) {
-            if (!ctx) return;
-            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-            ctx.save();
-            ctx.translate(centerX, centerY);
-            ctx.rotate(rotationAngle);
-
-            const gradient = ctx.createRadialGradient(0, 0, currentLabelRadius, 0, 0, currentCdRadius);
-            gradientStops.forEach(stop => { gradient.addColorStop(stop.offset, stop.color); });
-            ctx.beginPath();
-            ctx.arc(0, 0, currentCdRadius, 0, Math.PI * 2);
-            ctx.fillStyle = gradient;
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(0, 0, currentLabelRadius + (currentCdRadius - currentLabelRadius) * 0.1, 0, Math.PI * 2);
-            ctx.strokeStyle = innerRingStrokeColor;
-            ctx.lineWidth = 4;
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.arc(0, 0, currentLabelRadius, 0, Math.PI * 2);
-            ctx.fillStyle = labelAreaFillColor;
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(0, 0, currentLabelRadius * 0.8, 0, Math.PI * 2);
-            ctx.strokeStyle = innerLabelRingStrokeColor;
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            const letterSize = currentCdRadius * 0.1 * 4;
-            ctx.fillStyle = letterFillColor;
-            ctx.font = `${letterSize}px 'Times New Roman', serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            const letterDistance = (currentCdRadius + currentLabelRadius) / 2;
-            ctx.fillText('d', letterDistance, 0);
-            ctx.fillText('j', 0, letterDistance);
-            ctx.fillText('m', -letterDistance, 0);
-            ctx.fillText('c', 0, -letterDistance);
-
-            ctx.beginPath();
-            ctx.arc(0, 0, currentHoleRadius, 0, Math.PI * 2);
-            ctx.fillStyle = holeFillColor;
-            ctx.fill();
-            ctx.restore();
-        }
-
-        const leftCDColors = {
-            gradientStops: [{offset: 0, color: '#F0F0F0'}, {offset: 0.2, color: '#F0F8FF'}, {offset: 0.5, color: '#F5F5F5'}, {offset: 0.8, color: '#F0F8FF'}, {offset: 1, color: '#F0F0F0'}],
-            innerRingStrokeColor: 'rgba(180, 180, 180, 0.4)', labelAreaFillColor: '#C0C0C0', innerLabelRingStrokeColor: '#333333', letterFillColor: '#000000', holeFillColor: '#000000'
-        };
-
-        const rightCDColors = {
-            gradientStops: [{offset: 0, color: '#303030'}, {offset: 0.2, color: '#101010'}, {offset: 0.5, color: '#202020'}, {offset: 0.8, color: '#101010'}, {offset: 1, color: '#303030'}],
-            innerRingStrokeColor: 'rgba(200, 200, 200, 0.6)', labelAreaFillColor: '#303030', innerLabelRingStrokeColor: '#FFFFFF', letterFillColor: '#FFFFFF', holeFillColor: '#FFFFFF'
-        };
-
-        // --- Background Lattice Functions (Used on all pages) ---
-        const LATTICE_BASE_GRID_SIZE = 40; // Kept as local constant as it's not in CONFIG
-        const LATTICE_MIN_GRID_SIZE = 10;
-        const LATTICE_MAX_GRID_SIZE = 100;
-        const LATTICE_LINE_COLOR = 'rgba(200, 200, 200, 0.15)';
-        const LATTICE_PERTURBATION_RADIUS = 200;
-        const LATTICE_PERTURBATION_STRENGTH = 40;
-
-        function resizeLatticeCanvas() {
-            if (!backgroundLatticeCanvas) return;
-            backgroundLatticeCanvas.width = window.innerWidth;
-            backgroundLatticeCanvas.height = window.innerHeight;
-            latticeCtx.imageSmoothingEnabled = false;
-            latticeNeedsRedraw = true;
-        }
-
-        function drawLattice() {
-            if (!latticeCtx) return;
-            latticeCtx.clearRect(0, 0, backgroundLatticeCanvas.width, backgroundLatticeCanvas.height);
-            latticeCtx.strokeStyle = LATTICE_LINE_COLOR;
-            latticeCtx.lineWidth = 1;
-
-            const dynamicGridSize = LATTICE_MAX_GRID_SIZE - (mouseX / window.innerWidth) * (LATTICE_MAX_GRID_SIZE - LATTICE_MIN_GRID_SIZE);
-            const currentGridSize = Math.max(LATTICE_MIN_GRID_SIZE, Math.min(LATTICE_MAX_GRID_SIZE, dynamicGridSize));
-
-            for (let x = 0; x <= backgroundLatticeCanvas.width; x += currentGridSize) {
-                latticeCtx.beginPath();
-                for (let y = 0; y <= backgroundLatticeCanvas.height; y += currentGridSize / 2) {
-                    const dist = Math.sqrt(Math.pow(x - mouseX, 2) + Math.pow(y - mouseY, 2));
-                    let offsetX = 0;
-                    let offsetY = 0;
-                    if (dist < LATTICE_PERTURBATION_RADIUS) {
-                        const influence = 1 - (dist / LATTICE_PERTURBATION_RADIUS);
-                        offsetX = ((x - mouseX) / dist) * LATTICE_PERTURBATION_STRENGTH * influence;
-                        offsetY = ((y - mouseY) / dist) * LATTICE_PERTURBATION_STRENGTH * influence;
-                        if (isNaN(offsetX)) offsetX = 0;
-                        if (isNaN(offsetY)) offsetY = 0;
-                    }
-                    if (y === 0) { latticeCtx.moveTo(x + offsetX, y + offsetY); } else { latticeCtx.lineTo(x + offsetX, y + offsetY); }
-                }
-                latticeCtx.stroke();
-            }
-
-            for (let y = 0; y <= backgroundLatticeCanvas.height; y += currentGridSize) {
-                latticeCtx.beginPath();
-                for (let x = 0; x <= backgroundLatticeCanvas.width; x += currentGridSize / 2) {
-                    const dist = Math.sqrt(Math.pow(x - mouseX, 2) + Math.pow(y - mouseY, 2));
-                    let offsetX = 0;
-                    let offsetY = 0;
-                    if (dist < LATTICE_PERTURBATION_RADIUS) {
-                        const influence = 1 - (dist / LATTICE_PERTURBATION_RADIUS);
-                        offsetX = ((x - mouseX) / dist) * LATTICE_PERTURBATION_STRENGTH * influence;
-                        offsetY = ((y - mouseY) / dist) * LATTICE_PERTURBATION_STRENGTH * influence;
-                        if (isNaN(offsetX)) offsetX = 0;
-                        if (isNaN(offsetY)) offsetY = 0;
-                    }
-                    if (x === 0) { latticeCtx.moveTo(x + offsetX, y + offsetY); } else { latticeCtx.lineTo(x + offsetX, y + offsetY); }
-                }
-                latticeCtx.stroke();
-            }
-        }
-
-        // --- Link Box Animation Functions (Only for index.html) ---
-        function animateLinkBoxes() {
-            if (linkBoxes.length === 0) return; // Only run if link boxes exist
-            linkBoxes.forEach(box => {
-                if (box.moveRange > 0) {
-                    box.currentX += box.dx;
-                    box.currentY += box.dy;
-
-                    const minX = box.initialX - box.moveRange;
-                    const maxX = box.initialX + box.moveRange;
-                    const minY = box.initialY - box.moveRange;
-                    const maxY = box.initialY + box.moveRange;
-
-                    if (box.currentX < minX) { box.currentX = minX; box.dx = Math.abs(box.dx); }
-                    else if (box.currentX > maxX) { box.currentX = maxX; box.dx = -Math.abs(box.dx); }
-                    if (box.currentY < minY) { box.currentY = minY; box.dy = Math.abs(box.dy); }
-                    else if (box.currentY > maxY) { box.currentY = maxY; box.dy = -Math.abs(box.dy); }
-                } else {
-                    box.currentX = box.initialX;
-                    box.currentY = box.initialY;
-                }
-                box.style.left = `${box.currentX}px`;
-                box.style.top = `${box.currentY}px`;
-            });
-
-            // Collision detection and resolution
-            for (let i = 0; i < linkBoxes.length; i++) {
-                for (let j = i + 1; j < linkBoxes.length; j++) {
-                    const b1 = linkBoxes[i];
-                    const b2 = linkBoxes[j];
-
-                    // Exclude 'box-song-request' from collisions always
-                    // Exclude 'audio-player-box' from collisions always
-                    if ((b1.id === 'box-song-request' || b2.id === 'box-song-request') ||
-                        (b1.id === 'audio-player-box' || b2.id === 'audio-player-box')) {
-                        continue;
-                    }
-
-                    const rect1 = { left: b1.currentX, top: b1.currentY, right: b1.currentX + b1.offsetWidth, bottom: b1.currentY + b1.offsetHeight };
-                    const rect2 = { left: b2.currentX, top: b2.currentY, right: b2.currentX + b2.offsetWidth, bottom: b2.currentY + b2.offsetHeight };
-
-                    if (rect1.left < rect2.right && rect1.right > rect2.left && rect1.top < rect2.bottom && rect1.bottom > rect2.top) {
-                        // Only play sound if clankPlayers is loaded and collision sounds are enabled
-                        if (areCollisionSoundsEnabled && audioContextStarted && clankPlayers && clankPlayers.loaded) {
-                            const randomIndex = Math.floor(Math.random() * clankSoundFiles.length);
-                            clankPlayers.player(randomIndex).start();
-                        }
-                        const collisionX = (Math.max(rect1.left, rect2.left) + Math.min(rect1.right, rect2.right)) / 2;
-                        const collisionY = (Math.max(rect1.top, rect2.top) + Math.min(rect1.bottom, rect2.bottom)) / 2;
-                        const containerScreenRect = linkBoxesContainer.getBoundingClientRect();
-                        boxRipples.push(new RippleEffect(containerScreenRect.left + collisionX, containerScreenRect.top + collisionY));
-
-                        const overlapX = Math.min(rect1.right, rect2.right) - Math.max(rect1.left, rect2.left);
-                        const overlapY = Math.min(rect1.bottom, rect2.bottom) - Math.max(rect1.top, rect2.top);
-
-                        if (overlapX < overlapY) {
-                            if (rect1.left < rect2.left) { b1.currentX -= overlapX / 2 + 1; b2.currentX += overlapX / 2 + 1; } else { b1.currentX += overlapX / 2 + 1; b2.currentX -= overlapX / 2 + 1; }
-                            b1.dx *= -1; b2.dx *= -1;
-                        } else {
-                            if (rect1.top < rect2.top) { b1.currentY -= overlapY / 2 + 1; b2.currentY += overlapY / 2 + 1; } else { b1.currentY += overlapY / 2 + 1; b2.currentY -= overlapY / 2 + 1; }
-                            b1.dy *= -1; b2.dy *= -1;
-                        }
-                        b1.style.left = `${b1.currentX}px`; b1.style.top = `${b1.currentY}px`;
-                        b2.style.left = `${b2.currentX}px`; b2.style.top = `${b2.currentY}px`;
-                    }
-                }
-            }
-        }
-
-        // --- Positioning Functions (Only for index.html) ---
-        function positionElements() {
-            if (!mainHeader || !stopDiscsButton || !audioToggleBtn || !cdCanvasLeft || !cdCanvasRight || !audioPlayerBox || !userPhotoPlaceholder || !linkBoxesContainer || !songRequestArrow || !boxSongRequest) return;
-
-            // Update headerRect here
-            headerRect = mainHeader.getBoundingClientRect();
-
-            // Set custom cursor border sizes
-            customCursor.style.borderLeft = `${CONFIG.CURSOR_BORDER_HORIZONTAL_VW * CONFIG.GLOBAL_SCALE_FACTOR}vw solid transparent`;
-            customCursor.style.borderRight = `${CONFIG.CURSOR_BORDER_HORIZONTAL_VW * CONFIG.GLOBAL_SCALE_FACTOR}vw solid transparent`;
-            customCursor.style.borderBottom = `${CONFIG.CURSOR_BORDER_BOTTOM_VH * CONFIG.GLOBAL_SCALE_FACTOR}vh solid #00FFFF`; // Initial color
-
-            // Set link boxes container dimensions
-            linkBoxesContainer.style.maxWidth = `${CONFIG.LINK_BOXES_CONTAINER_MAX_WIDTH_VW * CONFIG.GLOBAL_SCALE_FACTOR}vw`;
-            linkBoxesContainer.style.height = `${CONFIG.LINK_BOXES_CONTAINER_HEIGHT_VH * CONFIG.GLOBAL_SCALE_FACTOR}vh`;
-
-            // Get the current width and height of the linkBoxesContainer
-            const containerRect = linkBoxesContainer.getBoundingClientRect();
-            const containerWidth = containerRect.width;
-            const containerHeight = containerRect.height;
-
-            // Define responsive gaps for link boxes
-            const gapX_px = 0.03 * Math.min(window.innerWidth, window.innerHeight) * CONFIG.GLOBAL_SCALE_FACTOR; // 3vmin gap
-            const gapY_px = 0.03 * Math.min(window.innerWidth, window.innerHeight) * CONFIG.GLOBAL_SCALE_FACTOR; // 3vmin gap
-
-
-            // Apply scaled dimensions to link boxes
-            // For boxLatest, calculate dimensions based on album art and padding
-            if (boxLatest) {
-                const albumArtPxSize = CONFIG.BOX_LATEST_ALBUM_ART_SIZE_VMIN * Math.min(window.innerWidth, window.innerHeight) * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-                const horizontalPaddingPx = CONFIG.BOX_LATEST_HORIZONTAL_PADDING_VMIN * Math.min(window.innerWidth, window.innerHeight) * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-                const verticalPaddingPx = CONFIG.BOX_LATEST_VERTICAL_PADDING_VMIN * Math.min(window.innerWidth, window.innerHeight) * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-
-                const albumArtElement = boxLatest.querySelector('.album-art'); // Corrected selector
-                if (albumArtElement) {
-                    albumArtElement.style.width = `${albumArtPxSize}px`;
-                    albumArtElement.style.height = `${albumArtPxSize}px`; // Make album art square
-                }
-
-                boxLatest.style.width = `${albumArtPxSize + (2 * horizontalPaddingPx)}px`;
-                boxLatest.style.padding = `${verticalPaddingPx}px ${horizontalPaddingPx}px`;
-                boxLatest.style.height = 'auto'; // Let flexbox determine height
-
-                // Font scaling for Latest box
-                boxLatest.querySelector('.link-title').style.fontSize = `${CONFIG.LINK_BOX_TITLE_FONT_SCALE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-                boxLatest.querySelectorAll('.links-group .text-link').forEach(link => {
-                    link.style.fontSize = `${CONFIG.LINK_BOX_TEXT_LINK_FONT_SCALE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-                });
-            }
-
-            // Apply general padding to other link boxes
-            const generalVerticalPaddingPx = CONFIG.LINK_BOX_VERTICAL_PADDING_VMIN * Math.min(window.innerWidth, window.innerHeight) * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-            const generalHorizontalPaddingPx = CONFIG.LINK_BOX_HORIZONTAL_PADDING_VMIN * Math.min(window.innerWidth, window.innerHeight) * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-
-            if (boxLinks) {
-                boxLinks.style.width = `${(CONFIG.BOX_LINKS_WIDTH_PERCENT / 100) * containerWidth}px`;
-                boxLinks.style.height = `${(CONFIG.BOX_LINKS_HEIGHT_PERCENT / 100) * containerHeight}px`;
-                boxLinks.style.padding = `${generalVerticalPaddingPx}px ${generalHorizontalPaddingPx}px`;
-                // Font scaling for Links box
-                boxLinks.querySelector('.link-title').style.fontSize = `${CONFIG.LINK_BOX_TITLE_FONT_SCALE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-                boxLinks.querySelectorAll('p').forEach(p => {
-                    p.style.fontSize = `${CONFIG.LINK_BOX_PARAGRAPH_FONT_SCALE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-                });
-                boxLinks.querySelectorAll('.text-link').forEach(link => {
-                    link.style.fontSize = `${CONFIG.LINK_BOX_TEXT_LINK_FONT_SCALE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-                });
-
-                // Set initial positions for boxLinks (relative to container)
-                boxLinks.initialX = (containerWidth / 2) + (gapX_px / 2);
-                boxLinks.initialY = 0; // Top of the container
-                boxLinks.dx = CONFIG.BOX_LINKS_DX;
-                boxLinks.dy = CONFIG.BOX_LINKS_DY;
-                boxLinks.moveRange = CONFIG.LINK_BOX_MOVE_RANGE_VMIN * Math.min(window.innerWidth, window.innerHeight) * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-            }
-
-            if (boxContact) {
-                boxContact.style.width = `${(CONFIG.BOX_CONTACT_WIDTH_PERCENT / 100) * containerWidth}px`;
-                boxContact.style.height = `${(CONFIG.BOX_CONTACT_HEIGHT_PERCENT / 100) * containerHeight}px`;
-                boxContact.style.padding = `${generalVerticalPaddingPx}px ${generalHorizontalPaddingPx}px`;
-                // Font scaling for Contact box
-                boxContact.querySelector('.link-title').style.fontSize = `${CONFIG.LINK_BOX_TITLE_FONT_SCALE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-
-                // Position Contact Me box directly below Links box
-                // boxLinks.initialX is already relative to the container's left.
-                boxContact.initialX = boxLinks.initialX; // Align X with Links box
-
-                // boxLinks.offsetHeight will be available after its dimensions are set.
-                // boxLinks.initialY is 0, so this calculation is correct for placing it below boxLinks.
-                boxContact.initialY = boxLinks.initialY + boxLinks.offsetHeight + gapY_px; // Below Links box + gap
-                boxContact.dx = CONFIG.BOX_CONTACT_DX;
-                boxContact.dy = CONFIG.BOX_CONTACT_DY;
-                boxContact.moveRange = CONFIG.LINK_BOX_MOVE_RANGE_VMIN * Math.min(window.innerWidth, window.innerHeight) * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-            }
-
-            // Box 4 (Song Request) is now fixed position
-            if (boxSongRequest) {
-                boxSongRequest.style.width = `${CONFIG.BOX_SONG_REQUEST_WIDTH_VW * CONFIG.GLOBAL_SCALE_FACTOR}vw`; // Use vw for fixed positioning
-                boxSongRequest.style.height = `${CONFIG.BOX_SONG_REQUEST_HEIGHT_VH * CONFIG.GLOBAL_SCALE_FACTOR}vh`; // Use vh for fixed positioning
-                boxSongRequest.style.right = `${CONFIG.BOX_SONG_REQUEST_RIGHT_OFFSET_VW * CONFIG.GLOBAL_SCALE_FACTOR}vw`;
-                boxSongRequest.style.bottom = `${CONFIG.BOX_SONG_REQUEST_BOTTOM_OFFSET_VH * CONFIG.GLOBAL_SCALE_FACTOR}vh`; // Use bottom instead of top
-                boxSongRequest.style.top = 'auto'; // Remove top property
-                // Font scaling for Song Request box
-                boxSongRequest.querySelector('.link-title').style.fontSize = `${CONFIG.BOX_SONG_REQUEST_TITLE_FONT_SCALE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`; // Use specific font scale
-            }
-
-            // Position static buttons (STOP, Audio Toggle)
-            stopDiscsButton.style.top = `${CONFIG.STOP_BUTTON_TOP_VH * CONFIG.GLOBAL_SCALE_FACTOR}vh`;
-            stopDiscsButton.style.right = `${CONFIG.STOP_BUTTON_RIGHT_VW * CONFIG.GLOBAL_SCALE_FACTOR}vw`;
-            stopDiscsButton.style.width = `${CONFIG.STOP_BUTTON_SIZE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`; // Explicit width
-            stopDiscsButton.style.height = `${CONFIG.STOP_BUTTON_SIZE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`; // Explicit height
-            stopDiscsButton.style.padding = `${CONFIG.STOP_BUTTON_PADDING_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`; // Apply scaled padding
-            stopDiscsButton.style.fontSize = `${CONFIG.STOP_BUTTON_FONT_SIZE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`; // Apply scaled font size
-
-            // Set Audio Toggle button size and position
-            audioToggleBtn.style.width = `${CONFIG.AUDIO_TOGGLE_BUTTON_SIZE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-            audioToggleBtn.style.height = `${CONFIG.AUDIO_TOGGLE_BUTTON_SIZE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-            audioToggleBtn.style.fontSize = `${CONFIG.AUDIO_TOGGLE_BUTTON_FONT_SIZE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-            audioToggleBtn.style.padding = `${CONFIG.AUDIO_TOGGLE_BUTTON_PADDING_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-
-            const contentFlexRect = contentFlexContainer.getBoundingClientRect();
-            const stopButtonRect = stopDiscsButton.getBoundingClientRect();
-
-            // Position audio toggle button relative to stop button
-            audioToggleBtn.style.top = `${stopButtonRect.bottom + (CONFIG.AUDIO_TOGGLE_BUTTON_TOP_OFFSET_FROM_STOP_BUTTON_BOTTOM_VH * window.innerHeight * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR)}px`;
-            audioToggleBtn.style.right = `${CONFIG.AUDIO_TOGGLE_BUTTON_RIGHT_VW * CONFIG.GLOBAL_SCALE_FACTOR}vw`;
-
-            // Apply font size to the audio file name link
-            if (audioFileNameLink) {
-                audioFileNameLink.style.fontSize = `${CONFIG.AUDIO_PLAYER_LINK_FONT_SIZE_VMIN * CONFIG.GLOBAL_SCALE_FACTOR}vmin`;
-            }
-
-            // Set initial positions for drifting CDs
-            initialCdLeftX = (headerRect.left - (cdCanvasLeft.offsetWidth) - (CONFIG.CD_LEFT_INITIAL_OFFSET_X_FROM_HEADER_LEFT_VW * window.innerWidth * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR));
-            initialCdLeftY = (headerRect.top + (headerRect.height / 2) - (cdCanvasLeft.offsetHeight / 2) + (CONFIG.CD_LEFT_INITIAL_OFFSET_Y_FROM_HEADER_CENTER_VH * window.innerHeight * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR));
-            cdLeftDx = CONFIG.CD_LEFT_INITIAL_DX; // Initialize dx from CONFIG
-            cdLeftDy = CONFIG.CD_LEFT_INITIAL_DY; // Initialize dy from CONFIG
-
-            initialCdRightX = (headerRect.right + (CONFIG.CD_RIGHT_INITIAL_OFFSET_X_FROM_HEADER_RIGHT_VW * window.innerWidth * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR));
-            initialCdRightY = (headerRect.top + (headerRect.height / 2) - (cdCanvasRight.offsetHeight / 2) + (CONFIG.CD_RIGHT_INITIAL_OFFSET_Y_FROM_HEADER_CENTER_VH * window.innerHeight * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR));
-            cdRightDx = CONFIG.CD_RIGHT_INITIAL_DX; // Initialize dx from CONFIG
-            cdRightDy = CONFIG.CD_RIGHT_INITIAL_DY; // Initialize dy from CONFIG
-
-            // Initialize audio player box position using absolute viewport constants
-            initialAudioPlayerBoxX = CONFIG.AUDIO_PLAYER_MIN_X_VW * window.innerWidth * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-            initialAudioPlayerBoxY = CONFIG.AUDIO_PLAYER_MIN_Y_VH * window.innerHeight * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-            audioPlayerBoxDx = CONFIG.AUDIO_PLAYER_INITIAL_DX;
-            audioPlayerBoxDy = CONFIG.AUDIO_PLAYER_INITIAL_DY;
-
-            // Position the link-boxes-container below the content-flex-container
-            linkBoxesContainer.style.marginTop = `${contentFlexRect.bottom - linkBoxesContainer.getBoundingClientRect().top + (CONFIG.LINK_BOXES_CONTAINER_TOP_MARGIN_OFFSET_FROM_CONTENT_BOTTOM_VH * window.innerHeight * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR)}px`;
-
-            // Initialize link box positions and velocities
-            // Now, position them relative to the container's top-left (0,0)
-            // Row 1: boxLatest, boxLinks
-            if (boxLatest) {
-                boxLatest.initialX = (containerWidth / 2) - boxLatest.offsetWidth - (gapX_px / 2);
-                boxLatest.initialY = 0; // Top of the container
-                boxLatest.dx = CONFIG.BOX_LATEST_DX;
-                boxLatest.dy = CONFIG.BOX_LATEST_DY;
-                boxLatest.moveRange = CONFIG.LINK_BOX_MOVE_RANGE_VMIN * Math.min(window.innerWidth, window.innerHeight) * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-            }
-
-            // Apply initial positions to CSS for animating linkBoxes
-            linkBoxes.forEach(box => {
-                box.currentX = box.initialX;
-                box.currentY = box.initialY;
-                box.style.left = `${box.currentX}px`;
-                box.style.top = `${box.currentY}px`;
-            });
-
-            // Set current positions to initial positions for CDs and Audio Player Box
-            cdLeftX = initialCdLeftX;
-            cdLeftY = initialCdLeftY;
-            cdRightX = initialCdRightX;
-            cdRightY = initialCdRightY;
-            audioPlayerBoxX = initialAudioPlayerBoxX;
-            audioPlayerBoxY = initialAudioPlayerBoxY;
-
-            // Apply initial positions to CSS for CDs and Audio Player Box (for the first render)
-            cdCanvasLeft.style.left = `${cdLeftX}px`;
-            cdCanvasLeft.style.top = `${cdLeftY}px`;
-            cdCanvasRight.style.left = `${cdRightX}px`;
-            cdCanvasRight.style.top = `${cdRightY}px`;
-            audioPlayerBox.style.left = `${audioPlayerBoxX}px`;
-            audioPlayerBox.style.top = `${audioPlayerBoxY}px`;
-
-            // Apply scaled arrow dimensions
-            if (songRequestArrow) {
-                // These are now set in positionArrow based on CONFIG.ARROW_WIDTH_VW and ARROW_HEIGHT_VH
-                songRequestArrow.style.width = '0'; // Ensure it's a triangle
-                songRequestArrow.style.height = '0'; // Ensure it's a triangle
-            }
-
-            // Position the arrow relative to boxSongRequest
-            positionArrow();
-        }
-
-        function positionArrow() {
-            if (!boxSongRequest || !songRequestArrow) return;
-            // Get the absolute position of the song request box relative to the viewport
-            const songRequestBoxAbsoluteRect = boxSongRequest.getBoundingClientRect();
-
-            // Set arrow dimensions based on CONFIG
-            const arrowWidthPx = CONFIG.ARROW_WIDTH_VW * window.innerWidth * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-            const arrowHeightPx = CONFIG.ARROW_HEIGHT_VH * window.innerHeight * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-            const arrowGapPx = CONFIG.ARROW_GAP_FROM_BOX_VH * window.innerHeight * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-
-            // Apply new CSS triangle properties for downward pointing arrow
-            songRequestArrow.style.borderTop = `${arrowHeightPx}px solid`; // The triangle itself
-            songRequestArrow.style.borderLeft = `${arrowWidthPx / 2}px solid transparent`;
-            songRequestArrow.style.borderRight = `${arrowWidthPx / 2}px solid transparent`;
-            songRequestArrow.style.borderBottom = '0'; // No bottom border for downward arrow
-            songRequestArrow.style.width = '0';
-            songRequestArrow.style.height = '0';
-
-            // Position the arrow horizontally centered above the box
-            const arrowLeftPx = songRequestBoxAbsoluteRect.left + (songRequestBoxAbsoluteRect.width / 2) - (arrowWidthPx / 2);
-            songRequestArrow.style.left = `${arrowLeftPx}px`;
-            songRequestArrow.style.right = 'auto'; // Remove right property
-
-            // Position the arrow directly above the box, with a gap
-            const arrowTopPx = songRequestBoxAbsoluteRect.top - arrowHeightPx - arrowGapPx;
-            songRequestArrow.style.top = `${arrowTopPx}px`;
-            songRequestArrow.style.bottom = 'auto'; // Remove bottom property
-
-            songRequestArrow.style.display = 'block';
-        }
-
-        // --- Main Animation Loop (Runs on all pages, but conditionally calls page-specific animations) ---
-        function animate() {
-            if (!rippleCtx || !latticeCtx) { // Ensure essential canvases are present
-                requestAnimationFrame(animate);
-                return;
-            }
-
-            rippleCtx.clearRect(0, 0, rippleCanvas.width, rippleCanvas.height);
-            for (let i = ripples.length - 1; i >= 0; i--) {
-                const ripple = ripples[i];
-                ripple.update();
-                ripple.draw();
-                if (ripple.opacity <= 0) { ripples.splice(i, 1); }
-            }
-            for (let i = boxRipples.length - 1; i >= 0; i--) {
-                const ripple = boxRipples[i];
-                ripple.update();
-                ripple.draw();
-                if (ripple.opacity <= 0) { boxRipples.splice(i, 1); }
-            }
-
-            if (mouseX !== lastMouseX || mouseY !== lastMouseY) { latticeNeedsRedraw = true; lastMouseX = mouseX; lastMouseY = mouseY; } // Only redraw lattice if mouse moved
-            if (latticeNeedsRedraw) { drawLattice(); latticeNeedsRedraw = false; }
-
-            // Index.html specific animations
-            if (mainHeader) { // Check if mainHeader exists (implies index.html)
-                if (isDiscsDrifting) {
-                    cdLeftX += cdLeftDx; // Use mutable dx
-                    cdLeftY += cdLeftDy; // Use mutable dy
-                    cdRightX += cdRightDx; // Use mutable dx
-                    cdRightY += cdRightDy; // Use mutable dy
-
-                    // Bounce Left CD off walls
-                    if (cdLeftX + cdCanvasLeft.offsetWidth > window.innerWidth) {
-                        cdLeftX = window.innerWidth - cdCanvasLeft.offsetWidth; // Snap to edge
-                        cdLeftDx *= -1;
-                    } else if (cdLeftX < 0) {
-                        cdLeftX = 0; // Snap to edge
-                        cdLeftDx *= -1;
-                    }
-                    if (cdLeftY + cdCanvasLeft.offsetHeight > window.innerHeight) {
-                        cdLeftY = window.innerHeight - cdCanvasLeft.offsetHeight; // Snap to edge
-                        cdLeftDy *= -1;
-                    } else if (cdLeftY < 0) {
-                        cdLeftY = 0; // Snap to edge
-                        cdLeftDy *= -1;
-                    }
-
-                    // Bounce Right CD off walls
-                    if (cdRightX + cdCanvasRight.offsetWidth > window.innerWidth) {
-                        cdRightX = window.innerWidth - cdCanvasRight.offsetWidth; // Snap to edge
-                        cdRightDx *= -1;
-                    } else if (cdRightX < 0) {
-                        cdRightX = 0; // Snap to edge
-                        cdRightDx *= -1;
-                    }
-                    if (cdRightY + cdCanvasRight.offsetHeight > window.innerHeight) {
-                        cdRightY = window.innerHeight - cdCanvasRight.offsetHeight; // Snap to edge
-                        cdRightDy *= -1;
-                    } else if (cdRightY < 0) {
-                        cdRightY = 0; // Snap to edge
-                        cdRightDy *= -1;
-                    }
-
-                    // Update Audio Player Box position
-                    audioPlayerBoxX += audioPlayerBoxDx; // Use mutable dx
-                    audioPlayerBoxY += audioPlayerBoxDy; // Use mutable dy
-
-                    // Convert viewport min/max to pixels
-                    const minX_px = CONFIG.AUDIO_PLAYER_MIN_X_VW * window.innerWidth * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-                    const maxX_px = CONFIG.AUDIO_PLAYER_MAX_X_VW * window.innerWidth * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-                    const minY_px = CONFIG.AUDIO_PLAYER_MIN_Y_VH * window.innerHeight * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-                    const maxY_px = CONFIG.AUDIO_PLAYER_MAX_Y_VH * window.innerHeight * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-
-                    // Bounce Audio Player Box off defined boundaries
-                    if (audioPlayerBoxX + audioPlayerBox.offsetWidth > maxX_px) {
-                        audioPlayerBoxX = maxX_px - audioPlayerBox.offsetWidth;
-                        audioPlayerBoxDx *= -1;
-                    } else if (audioPlayerBoxX < minX_px) {
-                        audioPlayerBoxX = minX_px;
-                        audioPlayerBoxDx *= -1;
-                    }
-                    if (audioPlayerBoxY + audioPlayerBox.offsetHeight > maxY_px) {
-                        audioPlayerBoxY = maxY_px - audioPlayerBox.offsetHeight;
-                        audioPlayerBoxDy *= -1;
-                    } else if (audioPlayerBoxY < minY_px) {
-                        audioPlayerBoxY = minY_px;
-                        audioPlayerBoxDy *= -1;
-                    }
-                }
-
-                cdCanvasLeft.style.left = `${cdLeftX}px`; cdCanvasLeft.style.top = `${cdLeftY}px`;
-                cdCanvasRight.style.left = `${cdRightX}px`; cdCanvasRight.style.top = `${cdRightY}px`;
-                audioPlayerBox.style.left = `${audioPlayerBoxX}px`; audioPlayerBox.style.top = `${audioPlayerBoxY}px`;
-
-                drawCD(cdCtxLeft, window.cdLeftCenterX, window.cdLeftCenterY, cdLeftRotationAngle, cdRadiusLeft, cdLabelRadiusLeft, cdHoleRadiusLeft, leftCDColors.gradientStops, leftCDColors.innerRingStrokeColor, leftCDColors.labelAreaFillColor, leftCDColors.innerLabelRingStrokeColor, leftCDColors.letterFillColor, leftCDColors.holeFillColor);
-                drawCD(cdCtxRight, window.cdRightCenterX, window.cdRightCenterY, cdRightRotationAngle, cdRadiusRight, cdLabelRadiusRight, cdHoleRadiusRight, rightCDColors.gradientStops, rightCDColors.innerRingStrokeColor, rightCDColors.labelAreaFillColor, rightCDColors.innerLabelRingStrokeColor, rightCDColors.letterFillColor, rightCDColors.holeFillColor);
-                animateLinkBoxes();
-            }
-            requestAnimationFrame(animate);
-        }
-
-        // --- Event Handlers (General or Conditional) ---
-        function updateCursorPosition(e) {
-            if (!customCursor) return;
-            if (e.clientX >= 0 && e.clientX <= window.innerWidth && e.clientY >= 0 && e.clientY <= window.innerHeight) {
-                mouseX = e.clientX;
-                mouseY = e.clientY;
-            }
-            customCursor.style.left = mouseX + 'px';
-            customCursor.style.top = mouseY + 'px';
-            const hue = (mouseX / window.innerWidth) * CONFIG.CURSOR_HUE_RANGE;
-            const color = `hsl(${hue}, 100%, 70%)`;
-            customCursor.style.borderBottomColor = color;
-            customCursor.style.filter = `drop-shadow(0 0 10px ${color})`;
-
-            // Only update CD rotation if on index.html
-            if (mainHeader) {
-                const normalizedX = mouseX / window.innerWidth;
-                const normalizedY = mouseY / window.innerHeight;
-                cdLeftRotationAngle = (normalizedX + normalizedY) * Math.PI * 2;
-                cdRightRotationAngle = (normalizedX - normalizedY) * Math.PI * 2;
-            }
-        }
-
-        function handleInteractiveHover(e) {
-            if (!customCursor) return;
-            if (e.type === 'mouseover') { customCursor.classList.add('link-hover'); }
-            else if (e.type === 'mouseout') { customCursor.classList.remove('link-hover'); }
-        }
-
-        // --- Initial Setup and Resizing (Conditional) ---
-        function onWindowResize() {
-            resizeRippleCanvas();
-            resizeLatticeCanvas();
-
-            if (mainHeader) { // Only for index.html
-                resizeCDCanvases();
-                positionElements(); // Recalculate and apply positions on resize
-
-                // Re-clamp CD and Audio Player Box positions to ensure they stay in bounds after resize
-                cdLeftX = Math.max(0, Math.min(window.innerWidth - cdCanvasLeft.offsetWidth, cdLeftX));
-                cdLeftY = Math.max(0, Math.min(window.innerHeight - cdCanvasLeft.offsetHeight, cdLeftY));
-                cdRightX = Math.max(0, Math.min(window.innerWidth - cdCanvasRight.offsetWidth, cdRightX));
-                cdRightY = Math.max(0, Math.min(window.innerHeight - cdCanvasRight.offsetHeight, cdRightY));
-                
-                // Re-clamp Audio Player Box positions to ensure they stay in bounds after resize
-                const minX_px = CONFIG.AUDIO_PLAYER_MIN_X_VW * window.innerWidth * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-                const maxX_px = CONFIG.AUDIO_PLAYER_MAX_X_VW * window.innerWidth * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-                const minY_px = CONFIG.AUDIO_PLAYER_MIN_Y_VH * window.innerHeight * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-                const maxY_px = CONFIG.AUDIO_PLAYER_MAX_Y_VH * window.innerHeight * 0.01 * CONFIG.GLOBAL_SCALE_FACTOR;
-
-                audioPlayerBoxX = Math.max(minX_px, Math.min(maxX_px - audioPlayerBox.offsetWidth, audioPlayerBoxX));
-                audioPlayerBoxY = Math.max(minY_px, Math.min(maxY_px - audioPlayerBox.offsetHeight, audioPlayerBoxY));
-
-                cdCanvasLeft.style.left = `${cdLeftX}px`; cdCanvasLeft.style.top = `${cdLeftY}px`;
-                cdCanvasRight.style.left = `${cdRightX}px`; cdCanvasRight.style.top = `${cdRightY}px`;
-                audioPlayerBox.style.left = `${audioPlayerBoxX}px`; audioPlayerBox.style.top = `${audioPlayerBoxY}px`;
-            }
-        }
-
-        // --- Page-specific Initialization ---
-        function initIndexPage() {
-            resizeCDCanvases();
-            // Small delay to ensure header dimensions are computed before positioning elements
-            setTimeout(() => {
-                positionElements();
-                animate(); // Start main animation loop for index.html
-            }, 100);
-
-            // Event listeners specific to index.html
-            if (stopDiscsButton) {
-                stopDiscsButton.addEventListener('click', () => {
-                    isDiscsDrifting = false;
-                    
-                    // Apply transitions for smooth return
-                    if (cdCanvasLeft) cdCanvasLeft.style.transition = 'left 1s ease-out, top 1s ease-out';
-                    if (cdCanvasRight) cdCanvasRight.style.transition = 'left 1s ease-out, top 1s ease-out';
-                    if (audioPlayerBox) audioPlayerBox.style.transition = 'left 1s ease-out, top 1s ease-out';
-                    linkBoxes.forEach(box => {
-                        box.style.transition = 'left 1s ease-out, top 1s ease-out';
-                    });
-
-                    // Reset CD positions and velocities
-                    cdLeftX = initialCdLeftX;
-                    cdLeftY = initialCdLeftY;
-                    cdLeftDx = 0;
-                    cdLeftDy = 0;
-
-                    cdRightX = initialCdRightX;
-                    cdRightY = initialCdRightY;
-                    cdRightDx = 0;
-                    cdRightDy = 0;
-
-                    // Reset Audio Player Box position and velocity
-                    audioPlayerBoxX = initialAudioPlayerBoxX;
-                    audioPlayerBoxY = initialAudioPlayerBoxY;
-                    audioPlayerBoxDx = 0;
-                    audioPlayerBoxDy = 0;
-
-                    // Reset Link Box positions and velocities
-                    linkBoxes.forEach(box => {
-                        box.currentX = box.initialX;
-                        box.currentY = box.initialY;
-                        box.dx = 0;
-                        box.dy = 0;
-                    });
-
-                    // Apply reset positions to CSS
-                    if (cdCanvasLeft) cdCanvasLeft.style.left = `${cdLeftX}px`;
-                    if (cdCanvasLeft) cdCanvasLeft.style.top = `${cdLeftY}px`;
-                    if (cdCanvasRight) cdCanvasRight.style.left = `${cdRightX}px`;
-                    if (cdCanvasRight) cdCanvasRight.style.top = `${cdRightY}px`;
-                    if (audioPlayerBox) audioPlayerBox.style.left = `${audioPlayerBoxX}px`;
-                    if (audioPlayerBox) audioPlayerBox.style.top = `${audioPlayerBoxY}px`;
-                    linkBoxes.forEach(box => {
-                        box.style.left = `${box.currentX}px`;
-                        box.style.top = `${box.currentY}px`;
-                    });
-
-                    stopDiscsButton.disabled = true;
-                    stopDiscsButton.innerHTML = "FROZEN"; // Changed to "FROZEN"
-
-                    // Remove transitions after they complete
-                    setTimeout(() => {
-                        if (cdCanvasLeft) cdCanvasLeft.style.transition = '';
-                        if (cdCanvasRight) cdCanvasRight.style.transition = '';
-                        if (audioPlayerBox) audioPlayerBox.style.transition = '';
-                        linkBoxes.forEach(box => {
-                            box.style.transition = '';
-                        });
-                    }, 1000); // Match transition duration
-                });
-            }
-
-            if (audioToggleBtn) {
-                // Set initial class for blue color
-                audioToggleBtn.classList.add('audio-initial');
-
-                audioToggleBtn.addEventListener('click', () => {
-                    if (!audioContextStarted) { startAudioContext(); setTimeout(() => audioToggleBtn.click(), 100); return; }
-                    
-                    if (audioFirstInteraction) {
-                        // First click: turn audio ON, change from blue to green
-                        audioToggleBtn.classList.remove('audio-initial');
-                        isAudioOn = true;
-                        audioToggleBtn.classList.add('audio-on');
-                        audioFirstInteraction = false;
+            // Function to generate a line of links
+            const createLinkLine = (linksArray) => {
+                const linksHtml = linksArray.map(link => {
+                    let linkContent = '';
+                    const linkClasses = `text-lg font-medium text-gray-800 group-hover:underline ${link.bold_italic ? 'font-bold italic' : ''}`;
+                    const linkText = link.name;
+                    const squareHtml = link.color ? `<span class="link-square ${link.color} ml-2"></span>` : '';
+
+                    if (link.is_email) {
+                        linkContent = `<a href="${link.url}" class="group flex items-center"><span class="${linkClasses}">${linkText}</span></a>`;
                     } else {
-                        // Subsequent clicks: toggle between green/grey
-                        isAudioOn = !isAudioOn;
-                        audioToggleBtn.classList.toggle('audio-on', isAudioOn);
-                        audioToggleBtn.classList.toggle('audio-off', !isAudioOn);
+                        linkContent = `<a href="${link.url}" class="group flex items-center" target="_blank" rel="noopener noreferrer"><span class="${linkClasses}">${linkText}</span>${squareHtml}</a>`;
                     }
+                    return linkContent;
+                }).join(' <span class="text-gray-500">//</span> ');
+                
+                return `<div class="flex items-center space-x-2 flex-wrap">${linksHtml}</div>`;
+            };
 
-                    if (Tone && Tone.Master) Tone.Master.mute = !isAudioOn;
-                    audioToggleBtn.innerHTML = isAudioOn ? "AUDIO<br>ON" : "AUDIO<br>OFF"; // Text for subsequent toggles
-                    updateCollisionSoundState(); // Update collision sound state when global audio toggles
-                    
-                    // Control background music based on global audio state
-                    if (backgroundPlayer && backgroundPlayer.loaded) {
-                        if (isAudioOn) {
-                            backgroundPlayer.start();
-                        } else {
-                            backgroundPlayer.stop();
-                        }
-                    }
-                });
-            }
+            const line1Html = createLinkLine(SOCIAL_LINKS_LINE_1);
+            const line2Html = createLinkLine(SOCIAL_LINKS_LINE_2);
 
-            // Attach a one-time click listener to the body to start the audio context
-            document.body.addEventListener('click', startAudioContext, { once: true });
+            socialLinksContainer.innerHTML = `${line1Html}<div class="mt-2"></div>${line2Html}`;
         }
 
-        // --- Main window.onload ---
-        window.onload = () => {
-            // Always resize and draw lattice for all pages
-            resizeLatticeCanvas();
-            resizeRippleCanvas(); // Ensure ripple canvas is also sized
+        /**
+         * Renders the release items on the timeline.
+         */
+        function renderReleases() {
+            releaseListLeft.innerHTML = '';
+            releaseListRight.innerHTML = '';
+            
+            RELEASES.forEach(release => {
+                const releaseDateMs = release.date.getTime();
+                // Only render releases that are within the visible timeline window
+                if (releaseDateMs >= startDate.getTime() && releaseDateMs <= endDate.getTime()) {
+                    const totalDurationMs = endDate.getTime() - startDate.getTime();
+                    // Calculate the percentage of time elapsed since the start date
+                    const timeElapsedPercent = (releaseDateMs - startDate.getTime()) / totalDurationMs;
+                    // Invert the percentage for reverse chronological order
+                    const topPercentage = (1 - timeElapsedPercent) * 100;
 
-            // Setup custom cursor for all pages
-            document.addEventListener('mousemove', updateCursorPosition);
-            document.addEventListener('click', emitRipple); // Ripples on click for all pages
+                    const releaseItemDiv = document.createElement('div');
+                    releaseItemDiv.classList.add('release-item');
+                    releaseItemDiv.style.top = `${topPercentage}%`;
 
-            // Setup interactive hover for all pages (if any elements exist)
-            document.querySelectorAll('[data-interactive-element]').forEach(element => {
-                element.addEventListener('mouseover', handleInteractiveHover);
-                element.addEventListener('mouseout', handleInteractiveHover);
+                    // Create the HTML for the links
+                    const linksHtml = release.links.map(link => `
+                        <a href="${link.url}" class="link-square ${link.color} hover:scale-110" aria-label="Listen on ${link.type}" target="_blank" rel="noopener noreferrer"></a>
+                    `).join('');
+                    
+                    const releaseContent = `
+                        <div class="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
+                            <p class="text-right text-gray-700 text-sm">${release.description}</p>
+                            <div class="flex items-center space-x-2">
+                                <span class="link-emoji">🔗</span>
+                                ${linksHtml}
+                            </div>
+                        </div>
+                    `;
+
+                    // Handle different positioning for left and right entries
+                    if (release.position === 'left') {
+                        releaseItemDiv.classList.add('left');
+                        releaseItemDiv.innerHTML = releaseContent;
+                        releaseListLeft.appendChild(releaseItemDiv);
+                    } else { // position === 'right'
+                        releaseItemDiv.classList.add('right');
+                        // Re-order content for right-side entries to put links first
+                        releaseItemDiv.innerHTML = `
+                           <div class="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
+                                <div class="flex items-center space-x-2">
+                                    <span class="link-emoji">🔗</span>
+                                    ${linksHtml}
+                                </div>
+                                <p class="text-gray-700 text-sm">${release.description}</p>
+                            </div>
+                        `;
+                        releaseListRight.appendChild(releaseItemDiv);
+                    }
+                }
             });
+        }
+        
+        /**
+         * Converts a mouse Y position to a date in reverse chronological order.
+         * @param {number} y - The vertical position in pixels.
+         * @param {number} totalHeight - The total height of the timeline container.
+         * @returns {Date} The calculated date.
+         */
+        function yToDate(y, totalHeight) {
+            const clampedY = Math.max(0, Math.min(totalHeight, y));
+            const percent = clampedY / totalHeight;
+            const timeElapsedMs = totalDurationMs * percent;
+            // Subtract timeElapsedMs from the end date for a reverse chronological timeline
+            const newDate = new Date(endDate.getTime() - timeElapsedMs);
+            return newDate;
+        }
 
-            // Page-specific initializations
-            if (mainHeader) { // Check for a unique element on index.html
-                initIndexPage();
-            } else { // For other pages (contact.html, song_request.html)
-                animate(); // Start animation loop for background lattice and cursor
-            }
+        /**
+         * Formats a date object into a readable string (e.g., "August 15, 2025").
+         * @param {Date} date - The date to format.
+         * @returns {string} The formatted date string.
+         */
+        function formatDate(date) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
 
-            window.addEventListener('resize', onWindowResize); // Global resize listener
-        };
+        // Add mousemove and touchmove event listeners to the interactive timeline axis
+        timelineContainer.addEventListener('mousemove', handleHover);
+        timelineContainer.addEventListener('touchmove', handleHover);
+
+        function handleHover(e) {
+            const rect = timelineContainer.getBoundingClientRect();
+            let mouseY = (e.touches && e.touches.length > 0) ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+            
+            // Clamp mouseY to be within the container's height
+            mouseY = Math.max(0, Math.min(rect.height, mouseY));
+
+            // Update the date display's position and text
+            dateDisplay.style.top = `${mouseY}px`;
+            const currentDate = yToDate(mouseY, rect.height);
+            dateDisplay.textContent = formatDate(currentDate);
+            dateDisplay.style.opacity = 1; // Make the display visible
+        }
+
+        // Add mouseout and touchend event listeners to hide the date display
+        timelineContainer.addEventListener('mouseout', () => dateDisplay.style.opacity = 0);
+        timelineContainer.addEventListener('touchend', () => dateDisplay.style.opacity = 0);
+
+        // Set the timeline height and initial render
+        document.getElementById('timeline-container').style.height = `${TIMELINE_HEIGHT}px`;
+        renderReleases();
+        renderSocialLinks();
     </script>
 </body>
 </html>
