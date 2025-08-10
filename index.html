@@ -115,7 +115,7 @@
         <section class="mb-12">
             <div class="text-lg leading-relaxed text-left">
                 <p class="mb-4 text-gray-700">
-                    Make Clean is the moniker of [Artist's Real Name], an electronic music producer known for their intricate sound design and evocative melodies. Hailing from [City/Region], Make Clean began experimenting with synthesizers and drum machines in the early 2010s.
+                    Producing electronic music -- electro, breaks, bass, techno, hyperpop -- from Sunnyvale CA.
                 </p>
                 <!-- Links Section -->
                 <div class="flex flex-col items-start space-y-2 mt-4" id="social-links-container">
@@ -160,24 +160,24 @@
         
         // Define color constants for the link squares.
         const COLOR_CONSTANTS = {
-            spotify: 'bg-green-500',
-            bandcamp: 'bg-blue-500',
-            soundcloud: 'bg-orange-500',
-            youtube: 'bg-red-500',
+            spotify: 'bg-[#1db954]',
+            bandcamp: 'bg-[#629aa9]',
+            soundcloud: 'bg-[#ff7700]',
+            youtube: 'bg-[#ff0000]',
         };
 
         // Define social media links with their URLs and properties.
         const SOCIAL_LINKS_LINE_1 = [
-            { name: 'Instagram', url: 'https://www.instagram.com/your_handle', bold_italic: true },
-            { name: 'Gumroad', url: 'https://your_gumroad_store.gumroad.com' },
-            { name: 'contact me at patd998@gmail.com', url: 'mailto:patd998@gmail.com', is_email: true }
+            { name: 'Instagram', url: 'https://www.instagram.com/djmakeclean', bold_italic: true },
+            { name: 'Gumroad', url: 'https://djmakeclean.gumroad.com' },
+            { name: 'contact me (Patrick) at patd998@gmail.com', url: 'mailto:patd998@gmail.com', is_email: true }
         ];
 
         const SOCIAL_LINKS_LINE_2 = [
-            { name: 'Spotify', url: 'https://open.spotify.com/artist/your_artist_id', color: COLOR_CONSTANTS.spotify },
-            { name: 'SoundCloud', url: 'https://soundcloud.com/yourhandle', color: COLOR_CONSTANTS.soundcloud },
-            { name: 'Bandcamp', url: 'https://yourband.bandcamp.com', color: COLOR_CONSTANTS.bandcamp },
-            { name: 'YouTube', url: 'https://www.youtube.com/channel/your_channel_id', color: COLOR_CONSTANTS.youtube }
+            { name: 'Spotify', url: 'https://open.spotify.com/artist/3nA7bz5GH7Nj60eyGl8E34?si=lcagHl45TIiNf5owlkmmAg', color: COLOR_CONSTANTS.spotify },
+            { name: 'SoundCloud', url: 'https://soundcloud.com/djmakeclean', color: COLOR_CONSTANTS.soundcloud },
+            { name: 'Bandcamp', url: 'https://djmakeclean.bandcamp.com', color: COLOR_CONSTANTS.bandcamp },
+            { name: 'YouTube', url: 'https://www.youtube.com/@djmakeclean', color: COLOR_CONSTANTS.youtube }
         ];
 
         // Array of release objects. Edit this to change the chronology.
@@ -192,52 +192,51 @@
                 ]
             },
             {
-                date: new Date('2025-07-01'),
+                date: new Date('2025-07-17'),
                 description: 'sticky geckom tape / dmv scammers.',
                 position: 'right',
                 links: [
-                    { type: 'Spotify', color: COLOR_CONSTANTS.spotify, url: 'https://open.spotify.com/album/example3' },
-                    { type: 'Soundcloud', color: COLOR_CONSTANTS.soundcloud, url: 'https://soundcloud.com/yourhandle/example3' },
-                    { type: 'YouTube', color: COLOR_CONSTANTS.youtube, url: 'https://www.youtube.com/watch?v=example3' }
+                    { type: 'Spotify', color: COLOR_CONSTANTS.spotify, url: 'https://open.spotify.com/album/0YlJUeYlLeEKvNuqT9ssbX?si=1L-TsyIoRbqZCFh8fkvBOQ' },
+                    { type: 'Soundcloud', color: COLOR_CONSTANTS.soundcloud, url: 'https://soundcloud.com/djmakeclean/sets/sticky-geckom-tape-dmv-scammers?si=75f3cff86e0d427baba03b68086ecbb5&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing' },
+                    { type: 'Bandcamp', color: COLOR_CONSTANTS.bandcamp, url: 'https://djmakeclean.bandcamp.com/album/sticky-geckom-tape-dmv-scammers' }
                 ]
             },
 
             {
-                date: new Date('2025-05-15'),
+                date: new Date('2025-06-27'),
                 description: 'ked bem',
                 position: 'left',
                 links: [
-                    { type: 'Spotify', color: COLOR_CONSTANTS.spotify, url: 'https://open.spotify.com/album/example5' },
-                    { type: 'Bandcamp', color: COLOR_CONSTANTS.bandcamp, url: 'https://yourband.bandcamp.com/track/example5' }
+                    { type: 'Soundcloud', color: COLOR_CONSTANTS.soundcloud, url: 'https://soundcloud.com/djmakeclean/sets/ked-bem' },
+                    { type: 'Bandcamp', color: COLOR_CONSTANTS.bandcamp, url: 'https://djmakeclean.bandcamp.com/album/ked-bem' }
                 ]
             },
 
             {
-                date: new Date('2025-04-15'),
+                date: new Date('2025-03-28'),
                 description: 'tampa (vip)',
                 position: 'right',
                 links: [
-                    { type: 'Spotify', color: COLOR_CONSTANTS.spotify, url: 'https://open.spotify.com/album/example5' },
-                    { type: 'Bandcamp', color: COLOR_CONSTANTS.bandcamp, url: 'https://yourband.bandcamp.com/track/example5' }
+                    { type: 'Spotify', color: COLOR_CONSTANTS.spotify, url: 'https://open.spotify.com/album/18iWaogWw3xMVE1Og2rSLU?si=s73flchKQBuLv7MdULYiCQ' },
+                    { type: 'YouTube', color: COLOR_CONSTANTS.youtube, url: 'https://www.youtube.com/watch?v=GRZ5NdpAT78' }
                 ]
             },
             {
-                date: new Date('2025-01-03'),
+                date: new Date('2025-01-12'),
                 description: '60degrees florida: 1. shhh 2. tampa 3. candyland (live)',
                 position: 'left',
                 links: [
-                    { type: 'Spotify', color: COLOR_CONSTANTS.spotify, url: 'https://open.spotify.com/album/example6' },
-                    { type: 'Bandcamp', color: COLOR_CONSTANTS.bandcamp, url: 'https://yourband.bandcamp.com/track/example6' },
-                    { type: 'Soundcloud', color: COLOR_CONSTANTS.soundcloud, url: 'https://soundcloud.com/yourhandle/example6' },
-                    { type: 'YouTube', color: COLOR_CONSTANTS.youtube, url: 'https://www.youtube.com/watch?v=example6' }
+                    { type: 'Spotify', color: COLOR_CONSTANTS.spotify, url: 'https://open.spotify.com/album/0R0d0jk4HEnDFAliCXZWfE?si=aEDByTYdTR237F1StvtS1Q' },
+                    { type: 'Bandcamp', color: COLOR_CONSTANTS.bandcamp, url: 'https://djmakeclean.bandcamp.com/album/60degrees-florida' },
+                    { type: 'Soundcloud', color: COLOR_CONSTANTS.soundcloud, url: 'https://soundcloud.com/djmakeclean/sets/60degrees-florida' },
                 ]
             },
             {
-                date: new Date('2025-01-01'),
+                date: new Date('2024-12-01'),
                 description: 'All my old stuff as Cream Coat (2019-2024)',
                 position: 'right',
                 links: [
-                    { type: 'Soundcloud', color: COLOR_CONSTANTS.soundcloud, url: 'https://soundcloud.com/yourhandle/example6' },
+                    { type: 'Soundcloud', color: COLOR_CONSTANTS.soundcloud, url: 'https://soundcloud.com/djmakeclean' },
                 ]
             }
         ];
