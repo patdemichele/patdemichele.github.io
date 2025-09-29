@@ -8,9 +8,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Courier Prime Font -->
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <!-- Font Audition Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;700&family=Exo+2:wght@400;700;900&family=Montserrat:wght@400;700;900&family=Bebas+Neue&family=Anton&family=Righteous&family=Russo+One&family=Audiowide&family=Michroma&family=Wallpoet&family=Major+Mono+Display&family=Space+Grotesk:wght@300;400;500&family=Inter:wght@300;400;500&family=Poppins:wght@300;400;500&family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Courier Prime', monospace;
+            font-family: 'IBM Plex Sans', sans-serif;
             background: linear-gradient(135deg, #0f1419 0%, #1a2332 50%, #2d3748 100%);
             color: #e2e8f0;
             min-height: 100vh;
@@ -26,77 +28,178 @@
         .link-square:hover {
             transform: scale(1.1);
         }
-        /* Styles for the interactive timeline container */
-        .timeline-container {
-            position: relative;
+        /* New Timeline Design */
+        .timeline-wrapper {
             display: flex;
-            justify-content: center; /* Center the timeline axis */
             align-items: stretch;
-            height: 400px; /* Fixed height for the timeline */
-            border-top: 2px solid #4a5568;
-            border-bottom: 2px solid #4a5568;
+            gap: 1rem;
+            max-width: 1000px;
+            margin: 0 auto;
         }
-        /* The invisible interactive bar in the center */
-        .interactive-timeline-axis {
+
+        /* Central timeline region with sine wave */
+        .timeline-region {
+            position: relative;
+            width: 120px;
+            height: 500px;
+            cursor: crosshair;
+        }
+
+        /* Sine wave SVG container */
+        .sine-wave-container {
             position: absolute;
             top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 150px; /* Wider interactive area for easier use */
+            left: 0;
+            width: 100%;
             height: 100%;
-            cursor: pointer;
+            z-index: 2;
         }
-        /* The date display that follows the mouse */
+
+        /* Date display */
         .timeline-date-display {
             position: absolute;
-            /* Positioned relative to the interactive-timeline-axis */
-            top: -20px;
             left: 50%;
             transform: translateX(-50%);
             font-size: 0.75rem;
-            line-height: 1rem;
-            white-space: nowrap;
             color: #e2e8f0;
-            pointer-events: none;
-            user-select: none;
-            opacity: 0; /* Initially hidden */
-            transition: opacity 0.2s ease-in-out;
             background-color: rgba(26, 35, 50, 0.9);
             padding: 0.25rem 0.5rem;
             border-radius: 0.25rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-            z-index: 10; /* Ensure it's on top of other elements */
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            z-index: 10;
         }
-        /* The container for releases on the left side of the timeline */
-        .release-list-left {
+
+        /* Entries containers */
+        .timeline-entries-left {
+            flex: 1;
             position: relative;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end; /* Align items to the right side of this container */
+            min-height: 500px;
         }
-        /* The container for releases on the right side of the timeline */
-        .release-list-right {
+
+        .timeline-entries-right {
+            flex: 1;
             position: relative;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start; /* Align items to the left side of this container */
+            min-height: 500px;
         }
-        .release-item {
+
+        /* Individual entry styling */
+        .timeline-entry {
             position: absolute;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
-        /* Fix the horizontal alignment for left and right items */
-        .release-list-left .release-item {
-            right: 0; /* Align left-side items to the right */
+
+        /* Entry hover container for proper tooltip behavior */
+        .entry-hover-container {
+            position: relative;
         }
-        .release-list-right .release-item {
-            left: 0; /* Align right-side items to the left */
+
+        .timeline-entry.left {
+            right: 0;
+            flex-direction: row;
         }
-        /* Style for the link emoji */
-        .link-emoji {
-            display: inline-block;
-            margin-right: 0.25rem;
+
+        .timeline-entry.right {
+            left: 0;
+            flex-direction: row;
+        }
+
+        /* Entry text styling */
+        .entry-text {
+            font-size: 0.875rem;
+            color: #e2e8f0;
+            background-color: rgba(51, 65, 85, 0.4);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid #475569;
+            max-width: 250px;
+            width: fit-content;
+            word-wrap: break-word;
+            line-height: 1.4;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            position: relative;
+        }
+
+        .entry-text:hover {
+            background-color: rgba(51, 65, 85, 0.6);
+            border-color: #64748b;
+        }
+
+        /* Tooltip for links */
+        .links-tooltip {
+            position: absolute;
+            background-color: rgba(15, 23, 42, 0.95);
+            border: 1px solid #475569;
+            border-radius: 0.375rem;
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 20;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Show tooltip on hover of the container */
+        .entry-hover-container:hover .links-tooltip {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Show tooltip when entry is clicked (for mobile) */
+        .entry-hover-container.active .links-tooltip {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .tooltip-link {
+            color: #93c5fd;
+            text-decoration: none;
+            margin-right: 0.75rem;
+        }
+
+        .tooltip-link:hover {
+            color: #bfdbfe;
+            text-decoration: underline;
+        }
+
+        .tooltip-link:last-child {
+            margin-right: 0;
+        }
+
+        /* Tooltip positioning - directly attached to text box */
+        .timeline-entry.left .links-tooltip {
+            right: 0;
+            top: calc(100% - 1px);
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+
+        .timeline-entry.right .links-tooltip {
+            left: 0;
+            top: calc(100% - 1px);
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+
+        /* Connection lines from entries to center */
+        .entry-line {
+            height: 2px;
+            background-color: #64748b;
+        }
+
+        .timeline-entry.left .entry-line {
+            width: 60px;
+        }
+
+        .timeline-entry.right .entry-line {
+            width: 60px;
         }
     </style>
 </head>
@@ -111,45 +214,53 @@
                 <img src="assets/bluephoto.jpg" alt="Make Clean Artist Photo" class="w-48 h-48 md:w-64 md:h-64 rounded-xl object-cover shadow-2xl border-2 border-slate-600/50 rotate-90">
             </div>
             <!-- Title Below Photo -->
-            <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight">
+            <h1 class="text-3xl md:text-4xl font-normal tracking-wider" style="font-family: 'Michroma', sans-serif;">
                 <span class="text-slate-100">Make</span> <span class="text-blue-300">Clean</span>
             </h1>
         </header>
 
+
         <!-- Artist Bio and Links Section -->
         <section class="mb-12">
-            <div class="text-lg leading-relaxed text-left">
+            <div class="text-lg leading-relaxed text-center">
                 <p class="mb-4 text-slate-300">
-                    Producing electronic music -- electro, breaks, bass, techno, hyperpop -- from Sunnyvale CA. Contact me: patd998@gmail.com
+                    Patrick (he/him), producing bass, techno, hyperpop, from Sunnyvale CA.
 
                 </p>
                 <!-- Links Section -->
-                <div class="flex flex-col items-start space-y-2 mt-4" id="social-links-container">
+                <div class="flex flex-col items-center space-y-2 mt-4" id="social-links-container">
                     <!-- Social links will be rendered here by JavaScript -->
                 </div>
             </div>
         </section>
 
         <!-- Chronology Section -->
-        <section class="mt-8">
-            <div class="flex">
-                <div id="release-list-left" class="release-list-left pr-2 md:pr-8"></div>
-                <!-- The interactive timeline container in the center -->
-                <div id="timeline-container" class="timeline-container w-[150px] mx-auto">
-                    <!-- The date display follows the mouse, positioned in the center -->
-                    <span id="timeline-date-display" class="timeline-date-display"></span>
-                    <div id="interactive-timeline-axis" class="interactive-timeline-axis"></div>
+        <section class="mt-12">
+            <div class="timeline-wrapper">
+                <!-- Left entries -->
+                <div id="timeline-entries-left" class="timeline-entries-left"></div>
+
+                <!-- Central timeline region -->
+                <div id="timeline-region" class="timeline-region">
+                    <div class="sine-wave-container">
+                        <svg width="100%" height="100%" viewBox="0 0 120 500" preserveAspectRatio="none">
+                            <path id="sine-wave-path" stroke="#64748b" stroke-width="2" fill="none"/>
+                        </svg>
+                    </div>
+                    <div id="timeline-date-display" class="timeline-date-display"></div>
                 </div>
-                <div id="release-list-right" class="release-list-right pl-2 md:pl-8"></div>
+
+                <!-- Right entries -->
+                <div id="timeline-entries-right" class="timeline-entries-right"></div>
             </div>
         </section>
     </main>
 
     <script>
         // Get references to the DOM elements
-        const timelineContainer = document.getElementById('interactive-timeline-axis');
-        const releaseListLeft = document.getElementById('release-list-left');
-        const releaseListRight = document.getElementById('release-list-right');
+        const timelineRegion = document.getElementById('timeline-region');
+        const entriesLeft = document.getElementById('timeline-entries-left');
+        const entriesRight = document.getElementById('timeline-entries-right');
         const dateDisplay = document.getElementById('timeline-date-display');
         const socialLinksContainer = document.getElementById('social-links-container');
 
@@ -161,8 +272,8 @@
          */
 
         // Set the start date of the timeline by specifying how many months in the past it should begin.
-        const START_DATE_MONTHS_AGO = 10;
-        const TIMELINE_HEIGHT = 400; // The fixed height of the timeline in pixels.
+        const START_DATE_MONTHS_AGO = 15;
+        const TIMELINE_HEIGHT = 500; // The fixed height of the timeline in pixels.
         
         // Define color constants for the link squares.
         const COLOR_CONSTANTS = {
@@ -176,24 +287,18 @@
         const SOCIAL_LINKS_LINE_1 = [
             { name: 'Instagram', url: 'https://www.instagram.com/djmakeclean', bold_italic: true },
             { name: 'Gumroad', url: 'https://djmakeclean.gumroad.com' },
-            { name: 'contact me (Patrick) at patd998@gmail.com', url: 'mailto:patd998@gmail.com', is_email: true }
+            { name: 'patd998@gmail.com', url: '', is_email: false }
         ];
 
         const SOCIAL_LINKS_LINE_2 = [
-            { name: 'Spotify', url: 'https://open.spotify.com/artist/3nA7bz5GH7Nj60eyGl8E34?si=lcagHl45TIiNf5owlkmmAg', color: COLOR_CONSTANTS.spotify },
-            { name: 'SoundCloud', url: 'https://soundcloud.com/djmakeclean', color: COLOR_CONSTANTS.soundcloud },
-            { name: 'Bandcamp', url: 'https://djmakeclean.bandcamp.com', color: COLOR_CONSTANTS.bandcamp },
-            { name: 'YouTube', url: 'https://www.youtube.com/@djmakeclean', color: COLOR_CONSTANTS.youtube }
+            { name: 'Spotify', url: 'https://open.spotify.com/artist/3nA7bz5GH7Nj60eyGl8E34?si=lcagHl45TIiNf5owlkmmAg' },
+            { name: 'SoundCloud', url: 'https://soundcloud.com/djmakeclean' },
+            { name: 'Bandcamp', url: 'https://djmakeclean.bandcamp.com' },
+            { name: 'YouTube', url: 'https://www.youtube.com/@djmakeclean' }
         ];
 
         // Array of release objects. Edit this to change the chronology.
         const RELEASES = [
-            {
-                date: new Date('2025-08-01'),
-                description: 'Labubu Factory (??)',
-                position: 'left',
-                links: []
-            },
             {
                 date: new Date('2025-07-17'),
                 description: 'sticky geckom tape / dmv scammers.',
@@ -255,6 +360,83 @@
         const totalDurationMs = endDate - startDate;
 
         /**
+         * Generates and renders the sine wave path with FM synthesis-style frequency modulation.
+         */
+        function renderSineWave() {
+            const sineWavePath = document.getElementById('sine-wave-path');
+            const width = 120;
+            const height = 500;
+            const centerX = width / 2;
+            const amplitude = 20; // How wide the sine wave oscillates
+
+            let pathData = '';
+            let phase = 0; // Running phase accumulator
+
+            // Create random frequency modulation points
+            const numModulationPoints = 12; // Number of random frequency changes
+            const modulationPoints = [];
+
+            for (let i = 0; i < numModulationPoints; i++) {
+                modulationPoints.push({
+                    y: Math.random() * height,
+                    // Frequency range that will give us visible sine wave cycles
+                    // Low: ~2-3 cycles over full height, High: ~8-12 cycles over full height
+                    frequency: 0.02 + Math.random() * 0.12, // Random frequency between 0.02 and 0.14
+                });
+            }
+
+            // Sort by y position for smooth interpolation
+            modulationPoints.sort((a, b) => a.y - b.y);
+
+            for (let y = 0; y <= height; y += 0.5) { // Smaller step for smoother curves
+                // Find the current frequency by interpolating between modulation points
+                let currentFrequency = 0.05; // Base frequency
+
+                // Find surrounding modulation points
+                let beforePoint = null;
+                let afterPoint = null;
+
+                for (let i = 0; i < modulationPoints.length; i++) {
+                    if (modulationPoints[i].y <= y) {
+                        beforePoint = modulationPoints[i];
+                    }
+                    if (modulationPoints[i].y > y && !afterPoint) {
+                        afterPoint = modulationPoints[i];
+                        break;
+                    }
+                }
+
+                if (beforePoint && afterPoint) {
+                    // Smooth interpolation between points
+                    const t = (y - beforePoint.y) / (afterPoint.y - beforePoint.y);
+                    // Use smooth interpolation curve
+                    const smoothT = t * t * (3 - 2 * t); // Smoothstep function
+                    currentFrequency = beforePoint.frequency + (afterPoint.frequency - beforePoint.frequency) * smoothT;
+                } else if (beforePoint) {
+                    currentFrequency = beforePoint.frequency;
+                } else if (afterPoint) {
+                    currentFrequency = afterPoint.frequency;
+                }
+
+                // Add subtle jitter for FM synthesis character (much less than before)
+                const jitter = (Math.random() - 0.5) * 0.005;
+                currentFrequency += jitter;
+
+                // Calculate the sine wave with the modulated frequency
+                phase += currentFrequency;
+                const x = centerX + amplitude * Math.sin(phase);
+
+                if (y === 0) {
+                    pathData += `M ${x} ${y}`;
+                } else {
+                    pathData += ` L ${x} ${y}`;
+                }
+            }
+
+            sineWavePath.setAttribute('d', pathData);
+        }
+
+        /**
          * Renders the social media links.
          */
         function renderSocialLinks() {
@@ -266,15 +448,13 @@
                     let linkContent = '';
                     const linkClasses = `text-lg font-medium text-slate-200 group-hover:underline hover:text-blue-300 transition-colors ${link.bold_italic ? 'font-bold italic' : ''}`;
                     const linkText = link.name;
-                    const squareHtml = link.color ? `<span class="link-square ${link.color} ml-2"></span>` : '';
-
-                    if (link.is_email) {
-                        linkContent = `<a href="${link.url}" class="group flex items-center"><span class="${linkClasses}">${linkText}</span></a>`;
+                    if (link.url === '') {
+                        linkContent = `<span class="${linkClasses}">${linkText}</span>`;
                     } else {
-                        linkContent = `<a href="${link.url}" class="group flex items-center" target="_blank" rel="noopener noreferrer"><span class="${linkClasses}">${linkText}</span>${squareHtml}</a>`;
+                        linkContent = `<a href="${link.url}" class="group flex items-center" target="_blank" rel="noopener noreferrer"><span class="${linkClasses}">${linkText}</span></a>`;
                     }
                     return linkContent;
-                }).join(' <span class="text-slate-500">//</span> ');
+                }).join(' <span class="text-slate-500">.</span> ');
                 
                 return `<div class="flex items-center space-x-2 flex-wrap">${linksHtml}</div>`;
             };
@@ -286,12 +466,12 @@
         }
 
         /**
-         * Renders the release items on the timeline.
+         * Renders the release entries on the timeline.
          */
         function renderReleases() {
-            releaseListLeft.innerHTML = '';
-            releaseListRight.innerHTML = '';
-            
+            entriesLeft.innerHTML = '';
+            entriesRight.innerHTML = '';
+
             RELEASES.forEach(release => {
                 const releaseDateMs = release.date.getTime();
                 // Only render releases that are within the visible timeline window
@@ -299,46 +479,48 @@
                     const totalDurationMs = endDate.getTime() - startDate.getTime();
                     // Calculate the percentage of time elapsed since the start date
                     const timeElapsedPercent = (releaseDateMs - startDate.getTime()) / totalDurationMs;
-                    // Invert the percentage for reverse chronological order
+                    // Invert the percentage for reverse chronological order (newest at top)
                     const topPercentage = (1 - timeElapsedPercent) * 100;
 
-                    const releaseItemDiv = document.createElement('div');
-                    releaseItemDiv.classList.add('release-item');
-                    releaseItemDiv.style.top = `${topPercentage}%`;
+                    const entryDiv = document.createElement('div');
+                    entryDiv.classList.add('timeline-entry');
+                    entryDiv.style.top = `${topPercentage}%`;
 
-                    // Create the HTML for the links
-                    const linksHtml = release.links.map(link => `
-                        <a href="${link.url}" class="link-square ${link.color} hover:scale-110" aria-label="Listen on ${link.type}" target="_blank" rel="noopener noreferrer"></a>
+                    // Create the tooltip links
+                    const tooltipLinksHtml = release.links.map(link => `
+                        <a href="${link.url}" class="tooltip-link" target="_blank" rel="noopener noreferrer">${link.type}</a>
                     `).join('');
-                    
-                    const releaseContent = `
-                        <div class="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
-                            <p class="text-right text-slate-300 text-xs md:text-sm">${release.description}</p>
-                            <div class="flex items-center space-x-2">
-                                <span class="link-emoji">🔗</span>
-                                ${linksHtml}
-                            </div>
-                        </div>
-                    `;
 
-                    // Handle different positioning for left and right entries
+                    const tooltipHtml = release.links.length > 0 ? `
+                        <div class="links-tooltip" onclick="event.stopPropagation()">
+                            ${tooltipLinksHtml}
+                        </div>
+                    ` : '';
+
                     if (release.position === 'left') {
-                        releaseItemDiv.classList.add('left');
-                        releaseItemDiv.innerHTML = releaseContent;
-                        releaseListLeft.appendChild(releaseItemDiv);
-                    } else { // position === 'right'
-                        releaseItemDiv.classList.add('right');
-                        // Re-order content for right-side entries to put links first
-                        releaseItemDiv.innerHTML = `
-                           <div class="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
-                                <div class="flex items-center space-x-2">
-                                    <span class="link-emoji">🔗</span>
-                                    ${linksHtml}
+                        entryDiv.classList.add('left');
+                        entryDiv.innerHTML = `
+                            <div class="entry-hover-container">
+                                <div class="entry-text">
+                                    ${release.description}
                                 </div>
-                                <p class="text-slate-300 text-xs md:text-sm">${release.description}</p>
+                                ${tooltipHtml}
+                            </div>
+                            <div class="entry-line"></div>
+                        `;
+                        entriesLeft.appendChild(entryDiv);
+                    } else { // position === 'right'
+                        entryDiv.classList.add('right');
+                        entryDiv.innerHTML = `
+                            <div class="entry-line"></div>
+                            <div class="entry-hover-container">
+                                <div class="entry-text">
+                                    ${release.description}
+                                </div>
+                                ${tooltipHtml}
                             </div>
                         `;
-                        releaseListRight.appendChild(releaseItemDiv);
+                        entriesRight.appendChild(entryDiv);
                     }
                 }
             });
@@ -369,32 +551,64 @@
             return date.toLocaleDateString('en-US', options);
         }
 
-        // Add mousemove and touchmove event listeners to the interactive timeline axis
-        timelineContainer.addEventListener('mousemove', handleHover);
-        timelineContainer.addEventListener('touchmove', handleHover);
+        // Add event listeners to the timeline region
+        timelineRegion.addEventListener('mousemove', handleTimelineHover);
+        timelineRegion.addEventListener('touchmove', handleTimelineHover);
+        timelineRegion.addEventListener('mouseout', hideDate);
+        timelineRegion.addEventListener('touchend', hideDate);
 
-        function handleHover(e) {
-            const rect = timelineContainer.getBoundingClientRect();
+        function handleTimelineHover(e) {
+            const rect = timelineRegion.getBoundingClientRect();
             let mouseY = (e.touches && e.touches.length > 0) ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
-            
-            // Clamp mouseY to be within the container's height
+
+            // Clamp mouseY to be within the timeline region
             mouseY = Math.max(0, Math.min(rect.height, mouseY));
 
-            // Update the date display's position and text
+            // Update the date display position and text
             dateDisplay.style.top = `${mouseY}px`;
             const currentDate = yToDate(mouseY, rect.height);
             dateDisplay.textContent = formatDate(currentDate);
-            dateDisplay.style.opacity = 1; // Make the display visible
+            dateDisplay.style.opacity = 1;
         }
 
-        // Add mouseout and touchend event listeners to hide the date display
-        timelineContainer.addEventListener('mouseout', () => dateDisplay.style.opacity = 0);
-        timelineContainer.addEventListener('touchend', () => dateDisplay.style.opacity = 0);
+        function hideDate() {
+            dateDisplay.style.opacity = 0;
+        }
 
-        // Set the timeline height and initial render
-        document.getElementById('timeline-container').style.height = `${TIMELINE_HEIGHT}px`;
+        // Add click-to-toggle functionality for entry hover containers
+        function addEntryClickHandlers() {
+            document.querySelectorAll('.entry-hover-container').forEach(container => {
+                container.addEventListener('click', function(e) {
+                    // Prevent event bubbling
+                    e.stopPropagation();
+
+                    // Close all other active entries
+                    document.querySelectorAll('.entry-hover-container.active').forEach(other => {
+                        if (other !== this) {
+                            other.classList.remove('active');
+                        }
+                    });
+
+                    // Toggle this entry
+                    this.classList.toggle('active');
+                });
+            });
+        }
+
+        // Close tooltips when clicking elsewhere
+        document.addEventListener('click', function() {
+            document.querySelectorAll('.entry-hover-container.active').forEach(container => {
+                container.classList.remove('active');
+            });
+        });
+
+        // Initialize the timeline
+        renderSineWave();
         renderReleases();
         renderSocialLinks();
+
+        // Add click handlers after rendering
+        addEntryClickHandlers();
     </script>
 </body>
 </html>
