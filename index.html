@@ -139,6 +139,45 @@
             hyphens: auto;
         }
 
+        /* Featured release styling */
+        .entry-text.featured {
+            font-size: 1rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(147, 51, 234, 0.3) 100%);
+            border: 2px solid #60a5fa;
+            max-width: 350px;
+            padding: 0.75rem 1rem;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .entry-text.featured:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.5) 0%, rgba(147, 51, 234, 0.5) 100%);
+            border-color: #93c5fd;
+        }
+
+        /* Album cover styling */
+        .entry-album-cover {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 0.375rem;
+            border: 2px solid #60a5fa;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 768px) {
+            .entry-album-cover {
+                width: 60px;
+                height: 60px;
+            }
+
+            .entry-text.featured {
+                max-width: calc(50vw - 80px);
+                font-size: 0.9rem;
+            }
+        }
+
         @media (max-width: 768px) {
             .entry-text {
                 max-width: calc(50vw - 60px);
@@ -248,7 +287,7 @@
         <header class="text-center p-6 -mt-6 -mx-6 bg-gradient-to-b from-slate-900/90 via-slate-800/70 to-transparent rounded-t-xl mb-8 md:mb-12" style="padding-bottom: 3rem;">
             <!-- Centered Photo -->
             <div class="flex justify-center mb-6">
-                <img src="assets/bluephoto.jpg" alt="Make Clean Artist Photo" class="w-48 h-48 md:w-64 md:h-64 rounded-xl object-cover shadow-2xl border-2 border-slate-600/50 rotate-90">
+                <img src="assets/betterpic.png" alt="Make Clean Artist Photo" class="w-48 h-48 md:w-64 md:h-64 rounded-xl object-cover shadow-2xl border-2 border-slate-600/50 -rotate-90">
             </div>
             <!-- Title Below Photo -->
             <h1 class="text-3xl md:text-4xl font-normal tracking-wider" style="font-family: 'Michroma', sans-serif;">
@@ -261,7 +300,7 @@
         <section class="mb-12">
             <div class="text-lg leading-relaxed text-center">
                 <p class="mb-4 text-slate-300">
-                    Patrick (he/him), producing bass, techno, hyperpop, from Sunnyvale CA.
+                    Patrick (he/him), producing electronic music from Sunnyvale CA.
                 </p>
                 <!-- Links Section -->
                 <div class="flex flex-col items-center space-y-2 mt-4" id="social-links-container">
@@ -321,20 +360,22 @@
         // Array of release objects. Edit this to change the chronology.
         const RELEASES = [
             {
+                date: new Date('2025-12-31'),
+                description: 'Sensitive Techno and Bass Music in 2025',
+                position: 'left',
+                featured: true,
+                albumCover: 'assets/stab2025_v1.png',
+                links: [
+                    { type: 'Bandcamp', url: 'https://djmakeclean.bandcamp.com/album/sensitive-techno-and-bass-music-in-2025' }
+                ]
+            },
+            {
                 date: new Date('2025-12-07'),
                 description: 'Get Rid',
                 position: 'right',
                 links: [
                     { type: 'Bandcamp', url: 'https://djmakeclean.bandcamp.com/track/get-rid' },
                     { type: 'SoundCloud', url: 'https://soundcloud.com/djmakeclean/get-rid' }
-                ]
-            },
-            {
-                date: new Date('2025-10-04'),
-                description: 'what was i made for',
-                position: 'left',
-                links: [
-                    { type: 'SoundCloud', url: 'https://soundcloud.com/djmakeclean/what-was-i-made-for' }
                 ]
             },
             {
@@ -524,15 +565,21 @@
                         </div>
                     ` : '';
 
+                    const featuredClass = release.featured ? ' featured' : '';
+                    const albumCoverHtml = release.albumCover ? `
+                        <img src="${release.albumCover}" alt="${release.description} album cover" class="entry-album-cover">
+                    ` : '';
+
                     if (release.position === 'left') {
                         entryDiv.classList.add('left');
                         entryDiv.innerHTML = `
                             <div class="entry-hover-container">
-                                <div class="entry-text">
+                                <div class="entry-text${featuredClass}">
                                     ${release.description}
                                 </div>
                                 ${tooltipHtml}
                             </div>
+                            ${albumCoverHtml}
                             <div class="entry-line"></div>
                         `;
                         entriesLeft.appendChild(entryDiv);
@@ -540,8 +587,9 @@
                         entryDiv.classList.add('right');
                         entryDiv.innerHTML = `
                             <div class="entry-line"></div>
+                            ${albumCoverHtml}
                             <div class="entry-hover-container">
-                                <div class="entry-text">
+                                <div class="entry-text${featuredClass}">
                                     ${release.description}
                                 </div>
                                 ${tooltipHtml}
